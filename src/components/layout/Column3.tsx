@@ -11,7 +11,8 @@ const Column3: React.FC = () => {
     cylinderFormType, errorOvality, errorTaper,
     tiltZ, warpForm, angularError,
     eccentricity, circularityError,
-    peakDeviation, valleySink
+    peakDeviation, valleySink,
+    lengthHousing, lengthShaft, lengthWasher
   } = useGdtStore();
 
   const isModule1 = activeModule === 1;
@@ -20,9 +21,12 @@ const Column3: React.FC = () => {
   const isModule4 = activeModule === 4;
   const isModule6 = activeModule === 6;
   const isModule7 = activeModule === 7;
+  const isModule8 = activeModule === 8;
 
   const isStraightness1D = isModule1 && formType === 'retilineidade';
   const isCirc2D = isModule2 && cylinderFormType === 'circularidade';
+
+  const measuredGap = lengthHousing - (lengthShaft + lengthWasher);
 
   const measuredDeviation = isModule1 
     ? (isStraightness1D ? warpConcave : Math.max(warpConcave, warpTwist))
@@ -36,11 +40,13 @@ const Column3: React.FC = () => {
             ? (eccentricity * 2 + circularityError)
             : isModule7
               ? (Math.abs(peakDeviation) + Math.abs(valleySink))
-              : 2 * Math.sqrt(deviationX ** 2 + deviationY ** 2);
+              : isModule8
+                ? measuredGap
+                : 2 * Math.sqrt(deviationX ** 2 + deviationY ** 2);
 
-  const bonus = (isModule1 || isModule2 || isModule3 || isModule4 || isModule6 || isModule7) ? 0 : Math.max(0, holeDiameter - 10.00);
+  const bonus = (isModule1 || isModule2 || isModule3 || isModule4 || isModule6 || isModule7 || isModule8) ? 0 : Math.max(0, holeDiameter - 10.00);
   const totalTol = isModule7 ? 0.200 : (isModule1 || isModule2 || isModule3 || isModule4 || isModule6) ? 0.050 : 0.200 + bonus;
-  const isPass = measuredDeviation <= totalTol;
+  const isPass = isModule8 ? (measuredGap >= 0.15 && measuredGap <= 0.85) : (measuredDeviation <= totalTol);
 
   return (
     <div className="flex flex-col h-full bg-white overflow-hidden">
@@ -219,6 +225,30 @@ const Column3: React.FC = () => {
                 </span>
                 <span className={`font-mono ${isPass ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {measuredDeviation.toFixed(3)} mm
+                </span>
+              </div>
+            </>
+          ) : isModule8 ? (
+            <>
+              <div className="flex justify-between text-slate-500 text-xs">
+                <span>Método de Análise</span>
+                <span className="font-semibold text-slate-700">Stack-Up 1D (Worst-Case)</span>
+              </div>
+              <div className="flex justify-between text-slate-500 text-xs">
+                <span>Fórmula da Cadeia</span>
+                <span className="font-mono text-blue-600">Gap = L1 - (L2 + L3)</span>
+              </div>
+              <div className="h-px bg-slate-200 my-1"></div>
+              <div className="flex justify-between font-bold text-slate-800">
+                <span>Folga Nominal do Projeto</span>
+                <span className="font-mono">0.500 mm</span>
+              </div>
+              <div className="flex justify-between font-bold mt-2">
+                <span className="text-slate-600">
+                  Gap Real Resultante
+                </span>
+                <span className={`font-mono ${isPass ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {measuredGap.toFixed(2)} mm
                 </span>
               </div>
             </>

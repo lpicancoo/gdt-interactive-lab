@@ -260,7 +260,7 @@ const Column1: React.FC = () => {
                 </ul>
               </div>
             </div>
-          ) : (
+          ) : activeModule === 7 ? (
             <div className="space-y-4">
               <h3 className="font-bold text-slate-800 text-lg">Módulo 7: Perfil de Superfície</h3>
               <p className="text-slate-600 leading-relaxed text-sm">
@@ -284,6 +284,30 @@ const Column1: React.FC = () => {
                   <li className="flex gap-2 items-start">
                     <strong className="font-bold text-blue-900 shrink-0">• Com ou Sem Datums:</strong>
                     <span>Se o perfil não tiver Datums, ele controla apenas a forma da curva. Quando adicionamos Datums (A e B), ele passa a controlar simultaneamente a forma, a orientação e a localização da curva no conjunto!</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="font-bold text-slate-800 text-lg">Módulo 8: Stack-Up de Tolerâncias</h3>
+              <p className="text-slate-600 leading-relaxed text-sm">
+                Em montagens com múltiplas peças, as tolerâncias individuais se acumulam (Stack-Up). O objetivo da engenharia é garantir que a montagem funcione mesmo quando as peças são fabricadas nos seus piores limites.
+              </p>
+
+              <div className="bg-blue-50/50 p-3.5 rounded-xl border border-blue-200 space-y-2.5">
+                <h4 className="font-bold text-blue-900 text-sm border-b border-blue-200 pb-1">
+                  Os Dois Métodos de Cálculo
+                </h4>
+                
+                <ul className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
+                  <li className="flex gap-2 items-start">
+                    <strong className="font-bold text-blue-900 shrink-0">• Worst-Case (O Pior Caso):</strong>
+                    <span>Assume que a lei de Murphy agiu na fábrica: a carcaça saiu no seu menor tamanho e os componentes internos saíram no maior tamanho possível. Garante 100% de montabilidade, mas encarece o projeto exigindo tolerâncias muito apertadas.</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <strong className="font-bold text-blue-900 shrink-0">• Estatístico (RSS - Root Sum Square):</strong>
+                    <span>Assume que é estatisticamente improvável que todas as peças de uma montagem saiam no seu pior limite ao mesmo tempo. Permite alargar as tolerâncias individuais para baratear a usinagem, aceitando um risco minúsculo de falha.</span>
                   </li>
                 </ul>
               </div>

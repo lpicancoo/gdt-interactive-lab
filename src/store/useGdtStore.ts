@@ -84,6 +84,14 @@ interface GdtState {
   setPeakDeviation: (val: number) => void;
   valleySink: number;
   setValleySink: (val: number) => void;
+
+  // Module 8 Assembly Stack-Up (Montagem e Acúmulo de Tolerâncias) State
+  lengthHousing: number;
+  setLengthHousing: (val: number) => void;
+  lengthShaft: number;
+  setLengthShaft: (val: number) => void;
+  lengthWasher: number;
+  setLengthWasher: (val: number) => void;
 }
 
 export const useGdtStore = create<GdtState>((set) => ({
@@ -106,6 +114,9 @@ export const useGdtStore = create<GdtState>((set) => ({
     circularityError: 0,
     peakDeviation: 0,
     valleySink: 0,
+    lengthHousing: 50.00,
+    lengthShaft: 45.00,
+    lengthWasher: 4.50,
     deviationX: 0,
     deviationY: 0
   }),
@@ -178,6 +189,16 @@ export const useGdtStore = create<GdtState>((set) => ({
 
   valleySink: 0,
   setValleySink: (val) => set({ valleySink: val }),
+
+  // Module 8 Assembly initial values
+  lengthHousing: 50.00,
+  setLengthHousing: (val) => set({ lengthHousing: val }),
+
+  lengthShaft: 45.00,
+  setLengthShaft: (val) => set({ lengthShaft: val }),
+
+  lengthWasher: 4.50,
+  setLengthWasher: (val) => set({ lengthWasher: val }),
 
   selectedDatumInFCF: null,
   setSelectedDatumInFCF: (val) => set({ selectedDatumInFCF: val }),

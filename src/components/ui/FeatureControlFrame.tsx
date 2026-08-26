@@ -413,6 +413,35 @@ const FeatureControlFrame: React.FC = () => {
     );
   }
 
+  if (activeModule === 8) {
+    return (
+      <div className="flex flex-col gap-3 items-start">
+        <div className="relative inline-flex flex-col">
+          <div 
+            className="inline-flex border-2 border-slate-800 rounded text-slate-800 font-mono text-sm font-bold divide-x-2 divide-slate-800 bg-white shadow-sm overflow-hidden items-center select-none cursor-pointer hover:bg-blue-50 transition-colors"
+            onClick={() => handleSymbolClick("Stack-Up 1D: Análise do acúmulo de variabilidade dimensional em uma montagem mecânica de 3 componentes (Carcaça, Eixo e Arruela).")}
+          >
+            <div className="px-3.5 py-1.5 bg-blue-600 text-white font-bold text-xs uppercase tracking-wider">
+              Stack-Up 1D
+            </div>
+            <div className="px-4 py-1.5 text-slate-800 text-xs">
+              Cadeia Dimensional de Montagem
+            </div>
+            <div className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs">
+              3 Peças
+            </div>
+          </div>
+
+          {activeTooltip && (
+            <div className="absolute top-full mt-2 left-0 w-72 p-3 bg-slate-800 text-white text-xs rounded-lg shadow-xl z-50 leading-relaxed border border-slate-700">
+              {activeTooltip}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative inline-flex flex-col">
       <div className="inline-flex border-2 border-slate-800 rounded text-slate-800 font-mono text-lg divide-x-2 divide-slate-800 bg-white shadow-sm overflow-hidden items-center select-none">

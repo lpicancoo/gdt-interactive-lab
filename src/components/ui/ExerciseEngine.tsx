@@ -392,6 +392,58 @@ const EXERCISES_MOD_7_DATA: Mod1Step[] = [
   }
 ];
 
+const EXERCISES_MOD_8_DATA: Mod1Step[] = [
+  {
+    id: 1,
+    title: '1. Simulando o Travamento',
+    level: 'Prática 3D',
+    type: 'interactive',
+    icon: BoxSelect,
+    text: 'Vamos forçar o "Pior Caso". Mova o slider da Carcaça para o menor valor possível (49.80). Mova o Eixo e a Arruela para seus maiores valores (45.10 e 4.55).'
+  },
+  {
+    id: 2,
+    title: '2. Cálculo do Gap Máximo',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: Target,
+    scenario: 'O pior caso de folga mínima já vimos que é 0.15 mm. Se a fábrica produzir no outro extremo (Carcaça Máxima, Eixo Mínimo, Arruela Mínima), qual será o "Pior Caso de Folga Máxima" calculada?',
+    options: ['0.85 mm', '1.00 mm'],
+    correctIndex: 0,
+    comment: 'Correto! O Gap Máximo ocorre quando o alojamento é o maior possível (50.20) e as peças internas são as menores (44.90 + 4.45 = 49.35). Portanto, 50.20 - 49.35 = 0.85 mm de folga máxima.'
+  },
+  {
+    id: 3,
+    title: '3. A Realidade do Bônus Geométrico',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: Crosshair,
+    scenario: 'Se um dos componentes internos tivesse uma tolerância de Perpendicularidade com um modificador Ⓜ (MMC), como isso afetaria nossa cadeia de acúmulo (Stack-Up)?',
+    options: ['Não afeta em nada', 'Adiciona o erro de inclinação e o bônus à folga'],
+    correctIndex: 1,
+    comment: 'Resposta de Especialista! O Stack-Up real não é apenas linear (1D). Se a arruela estiver inclinada (fora de perpendicularidade), ela ocupará um \'espaço extra\' no eixo Z, reduzindo o Gap de montagem. O GD&T deve entrar no cálculo!'
+  },
+  {
+    id: 4,
+    title: '4. Otimização de Custos (RSS)',
+    level: 'Prática 3D',
+    type: 'interactive',
+    icon: Cpu,
+    text: 'Mantenha os sliders perto do valor nominal. O método Estatístico (RSS) afirma que a variação total provável não é a soma simples, mas sim a raiz quadrada da soma dos quadrados das tolerâncias. Isso nos diz que podemos baratear as peças!'
+  },
+  {
+    id: 5,
+    title: '5. Decisão Final do Projeto',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: Award,
+    scenario: 'Sabendo que o uso do RSS relaxou a exigência, o gerente de produção perguntou: "Se usarmos a análise estatística em vez do Pior Caso, corremos algum risco?"',
+    options: ['Sim, haverá um pequeno % de rejeição de montagens', 'Não, a garantia de montagem continua 100%'],
+    correctIndex: 0,
+    comment: 'Perfeito! O método RSS relaxa as tolerâncias individuais da usinagem assumindo que as peças seguirão uma curva normal (Sino de Gauss). Assim, você aceita que talvez 0,3% (em 3 Sigma) ou 0,0003% (em 6 Sigma) das montagens travem na linha, mas a economia de usinagem compensa o descarte.'
+  }
+];
+
 const ExerciseEngine: React.FC = () => {
   const { 
     activeModule, activeExercise, setActiveExercise, 
@@ -402,7 +454,8 @@ const ExerciseEngine: React.FC = () => {
     tiltZ, warpForm,
     angularError, selectedDatumInFCF,
     eccentricity, circularityError,
-    peakDeviation, valleySink
+    peakDeviation, valleySink,
+    lengthHousing, lengthShaft, lengthWasher
   } = useGdtStore();
 
   const [ex2Input, setEx2Input] = useState('');
@@ -527,6 +580,18 @@ const ExerciseEngine: React.FC = () => {
                         </div>
                       )}
 
+                      {/* Custom Button for Module 8 Step 4 */}
+                      {modId === 8 && ex.id === 4 && !exerciseProgress[4] && (
+                        <div className="pt-2">
+                          <button
+                            onClick={() => setExerciseProgress(4, true)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition-colors shadow-sm flex items-center justify-center gap-2"
+                          >
+                            <span>⚡</span> Aplicar Cálculo RSS (Root Sum Square)
+                          </button>
+                        </div>
+                      )}
+
                       {exerciseProgress[ex.id] ? (
                         <div className="p-3 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 space-y-2">
                           <div className="flex items-center gap-1.5 font-bold text-emerald-700 text-xs">
@@ -553,7 +618,11 @@ const ExerciseEngine: React.FC = () => {
                                             : 'A peça reprovou! O desvio posicional radial ultrapassou a zona bônus de 0.55 mm.')
                                       : modId === 6
                                         ? 'A excentricidade deslocou o centro de rotação, fazendo o relógio comparador oscilar além do limite de 0.05 mm!'
-                                        : 'O pico ultrapassou a casca verde de 0.20 mm, ativando o mapa de calor vermelho e reprovando a peça!'
+                                        : modId === 7
+                                          ? 'O pico ultrapassou a casca verde de 0.20 mm, ativando o mapa de calor vermelho e reprovando a peça!'
+                                          : (ex.id === 1
+                                              ? 'O Gap caiu para 0.15 mm no pior caso de fábrica, acusando o alerta de travamento!'
+                                              : 'O modelo RSS estatístico foi aplicado! As tolerâncias foram relaxadas com segurança.')
                             }
                           </p>
 
@@ -597,7 +666,11 @@ const ExerciseEngine: React.FC = () => {
                                           : 'Aguardando: Mova os sliders de desvio X e Y até a badge mudar para REPROVADO...')
                                       : modId === 6
                                         ? 'Aguardando: Ajuste o slider "Erro de Excentricidade" para 0.03 mm ou mais...'
-                                        : 'Aguardando: Ajuste o slider "Desvio Máximo de Pico" para +0.15 mm ou mais...'
+                                        : modId === 7
+                                          ? 'Aguardando: Ajuste o slider "Desvio Máximo de Pico" para +0.15 mm ou mais...'
+                                          : (ex.id === 1
+                                              ? 'Aguardando: Mova L1=49.80, L2=45.10 e L3=4.55 para simular o Pior Caso...'
+                                              : 'Aguardando: Clique no botão "Aplicar Cálculo RSS" acima...')
                             }
                           </div>
                         )
@@ -779,6 +852,17 @@ const ExerciseEngine: React.FC = () => {
     }
 
     return renderHybridModule('Exercícios: Módulo 7 (Perfil de Superfície)', EXERCISES_MOD_7_DATA, 7);
+  }
+
+  // Module 8 Hybrid Pipeline Implementation (Stack-Up de Tolerâncias)
+  if (activeModule === 8) {
+    const stackGap = lengthHousing - (lengthShaft + lengthWasher);
+    const isMod8Step1Done = lengthHousing <= 49.80 && lengthShaft >= 45.10 && lengthWasher >= 4.55 && stackGap <= 0.15;
+    if (activeExercise === 1 && isMod8Step1Done && !exerciseProgress[1]) {
+      setExerciseProgress(1, true);
+    }
+
+    return renderHybridModule('Exercícios: Módulo 8 (Stack-Up de Tolerâncias)', EXERCISES_MOD_8_DATA, 8);
   }
 
   return null;

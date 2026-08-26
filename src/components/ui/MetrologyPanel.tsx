@@ -17,7 +17,10 @@ const MetrologyPanel: React.FC = () => {
     eccentricity, setEccentricity,
     circularityError, setCircularityError,
     peakDeviation, setPeakDeviation,
-    valleySink, setValleySink
+    valleySink, setValleySink,
+    lengthHousing, setLengthHousing,
+    lengthShaft, setLengthShaft,
+    lengthWasher, setLengthWasher
   } = useGdtStore();
 
   if (activeModule === 1) {
@@ -384,6 +387,92 @@ const MetrologyPanel: React.FC = () => {
                 <span>0.000 (CAD)</span>
                 <span>-0.100 (Limite)</span>
                 <span>-0.250 mm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeModule === 8) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <p className="text-xs text-slate-500 mb-4 italic">
+            Altere as dimensões reais usinadas em fábrica para cada componente da montagem e veja o efeito na folga (Gap) em tempo real.
+          </p>
+
+          <div className="flex flex-col gap-5">
+            {/* Slider 1: L1 Rasgo da Carcaça */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-xs font-bold text-slate-700">
+                  L1: Rasgo da Carcaça
+                </label>
+                <span className="font-mono font-bold text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  {lengthHousing.toFixed(2)} mm
+                </span>
+              </div>
+              <input 
+                type="range" 
+                min="49.80" max="50.20" step="0.01" 
+                value={lengthHousing}
+                onChange={(e) => setLengthHousing(parseFloat(e.target.value))}
+                className="w-full accent-blue-600 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+                <span>49.80 (Mín)</span>
+                <span>50.00 (Nom)</span>
+                <span>50.20 mm (Máx)</span>
+              </div>
+            </div>
+
+            {/* Slider 2: L2 Comprimento do Eixo */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-xs font-bold text-slate-700">
+                  L2: Comprimento do Eixo
+                </label>
+                <span className="font-mono font-bold text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  {lengthShaft.toFixed(2)} mm
+                </span>
+              </div>
+              <input 
+                type="range" 
+                min="44.90" max="45.10" step="0.01" 
+                value={lengthShaft}
+                onChange={(e) => setLengthShaft(parseFloat(e.target.value))}
+                className="w-full accent-blue-600 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+                <span>44.90 (Mín)</span>
+                <span>45.00 (Nom)</span>
+                <span>45.10 mm (Máx)</span>
+              </div>
+            </div>
+
+            {/* Slider 3: L3 Espessura da Arruela */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-xs font-bold text-slate-700">
+                  L3: Espessura da Arruela
+                </label>
+                <span className="font-mono font-bold text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  {lengthWasher.toFixed(2)} mm
+                </span>
+              </div>
+              <input 
+                type="range" 
+                min="4.45" max="4.55" step="0.01" 
+                value={lengthWasher}
+                onChange={(e) => setLengthWasher(parseFloat(e.target.value))}
+                className="w-full accent-blue-600 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+                <span>4.45 (Mín)</span>
+                <span>4.50 (Nom)</span>
+                <span>4.55 mm (Máx)</span>
               </div>
             </div>
           </div>
