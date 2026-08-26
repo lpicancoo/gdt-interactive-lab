@@ -21,7 +21,7 @@ const VirtualGaugePins: React.FC = () => {
 
   const animatingRef = useRef(false);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (gaugeAnimationActive && groupRef.current) {
       if (groupRef.current.position.y > -0.2) {
         groupRef.current.position.y -= delta * 2;

@@ -6,7 +6,7 @@ import { Geometry, Base, Subtraction } from '@react-three/csg';
 import { Html } from '@react-three/drei';
 
 const OnboardingBlock: React.FC = () => {
-  const { showFabricationErrors, onboardingStep } = useGdtStore();
+  const { showFabricationErrors, onboardingStep, deviationX, deviationY } = useGdtStore();
   const groupRef = useRef<THREE.Group>(null);
   const blockRef = useRef<THREE.Group>(null);
 
@@ -16,10 +16,10 @@ const OnboardingBlock: React.FC = () => {
     metalness: 0.7,
   }), []);
 
-  // Animate the block descending to touch the Datum Simulator (Step 4)
-  useFrame((state, delta) => {
+  // Animate the block descending to touch the Datum Simulator (Step 4+)
+  useFrame((_state, delta) => {
     if (blockRef.current) {
-      const targetY = onboardingStep === 4 ? 0 : 2;
+      const targetY = onboardingStep >= 4 ? 0 : 2;
       blockRef.current.position.y = THREE.MathUtils.lerp(
         blockRef.current.position.y,
         targetY,
@@ -27,7 +27,7 @@ const OnboardingBlock: React.FC = () => {
       );
       
       // If showing fabrication errors, the block will tilt when resting on the datum
-      const targetRotationZ = (onboardingStep === 4 && showFabricationErrors) ? 0.05 : 0;
+      const targetRotationZ = (onboardingStep >= 4 && showFabricationErrors) ? 0.05 : 0;
       blockRef.current.rotation.z = THREE.MathUtils.lerp(
         blockRef.current.rotation.z,
         targetRotationZ,
@@ -39,7 +39,7 @@ const OnboardingBlock: React.FC = () => {
   return (
     <group ref={groupRef}>
       {/* Datum A Simulator (Surface Plate) */}
-      {onboardingStep === 4 && (
+      {onboardingStep >= 4 && (
         <mesh position={[0, -0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[10, 10]} />
           <meshBasicMaterial color="#2563eb" transparent opacity={0.3} side={THREE.DoubleSide} />
@@ -75,7 +75,7 @@ const OnboardingBlock: React.FC = () => {
           <meshStandardMaterial color="#e2e8f0" roughness={0.3} metalness={0.7} />
         </mesh>
 
-        {/* Highlight Zone for Step 3 */}
+        {/* Highlight Zone for Step 3+ */}
         {onboardingStep >= 3 && (
           <mesh position={[0, 1, 0]}>
             <cylinderGeometry args={[0.9, 0.9, 2.1, 32]} />
@@ -86,6 +86,21 @@ const OnboardingBlock: React.FC = () => {
               </div>
             </Html>
           </mesh>
+        )}
+
+        {/* Real Axis Line for Step 5+ */}
+        {(onboardingStep >= 5 || deviationX !== 0 || deviationY !== 0) && (
+          <group position={[deviationX, 1, deviationY]}>
+            <mesh>
+              <cylinderGeometry args={[0.04, 0.04, 2.4, 16]} />
+              <meshBasicMaterial color="#ef4444" />
+            </mesh>
+            <Html position={[0, 1.3, 0]} center>
+              <div className="bg-rose-600 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap font-bold">
+                Eixo Real Usinado
+              </div>
+            </Html>
+          </group>
         )}
 
         {/* Imperfect Surface Tooltip */}

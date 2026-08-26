@@ -5,6 +5,12 @@ import FlangeModel from './FlangeModel';
 import ToleranceZones from './ToleranceZones';
 import VirtualGaugePins from './VirtualGaugePins';
 import OnboardingBlock from './OnboardingBlock';
+import FlatnessBlock from './FlatnessBlock';
+import CylinderBlock from './CylinderBlock';
+import ParallelBlock from './ParallelBlock';
+import PerpendicularBlock from './PerpendicularBlock';
+import SteppedShaftBlock from './SteppedShaftBlock';
+import CurvedProfileBlock from './CurvedProfileBlock';
 import { useGdtStore } from '../../store/useGdtStore';
 import * as THREE from 'three';
 
@@ -48,13 +54,25 @@ const Viewport3D: React.FC = () => {
       <Suspense fallback={null}>
         {activeModule === 0 ? (
           <OnboardingBlock />
-        ) : (
+        ) : activeModule === 1 ? (
+          <FlatnessBlock />
+        ) : activeModule === 2 ? (
+          <CylinderBlock />
+        ) : activeModule === 3 ? (
+          <ParallelBlock />
+        ) : activeModule === 4 ? (
+          <PerpendicularBlock />
+        ) : activeModule === 5 ? (
           <group position={[0, 1, 0]}>
             <FlangeModel />
             {showToleranceZones && <ToleranceZones />}
             <VirtualGaugePins />
           </group>
-        )}
+        ) : activeModule === 6 ? (
+          <SteppedShaftBlock />
+        ) : activeModule === 7 ? (
+          <CurvedProfileBlock />
+        ) : null}
       </Suspense>
 
       <ContactShadows 

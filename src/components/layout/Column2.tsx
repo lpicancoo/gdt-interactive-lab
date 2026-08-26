@@ -1,7 +1,7 @@
 import React from 'react';
 import Viewport3D from '../3d/Viewport3D';
 import { useGdtStore } from '../../store/useGdtStore';
-import { Eye, EyeOff, Maximize, Rotate3D } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Column2: React.FC = () => {
   const { 

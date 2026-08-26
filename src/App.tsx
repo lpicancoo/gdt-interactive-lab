@@ -1,4 +1,4 @@
-import React from 'react';
+
 import Column1 from './components/layout/Column1';
 import Column2 from './components/layout/Column2';
 import Column3 from './components/layout/Column3';

@@ -47,11 +47,68 @@ interface GdtState {
   setOnboardingStep: (val: number) => void;
   hasInteractedWithCamera: boolean;
   setHasInteractedWithCamera: (val: boolean) => void;
+  // Module 1 Flatness vs Straightness State
+  formType: 'planeza' | 'retilineidade';
+  setFormType: (val: 'planeza' | 'retilineidade') => void;
+  warpConcave: number;
+  setWarpConcave: (val: number) => void;
+  warpTwist: number;
+  setWarpTwist: (val: number) => void;
+
+  // Module 2 Circularity vs Cylindricity State
+  cylinderFormType: 'circularidade' | 'cilindricidade';
+  setCylinderFormType: (val: 'circularidade' | 'cilindricidade') => void;
+  errorOvality: number;
+  setErrorOvality: (val: number) => void;
+  errorTaper: number;
+  setErrorTaper: (val: number) => void;
+
+  // Module 3 Orientation (Parallelism) State
+  tiltZ: number;
+  setTiltZ: (val: number) => void;
+  warpForm: number;
+  setWarpForm: (val: number) => void;
+
+  // Module 4 Orientation (Perpendicularity) State
+  angularError: number;
+  setAngularError: (val: number) => void;
+
+  // Module 6 Runout (Batimento Circular) State
+  eccentricity: number;
+  setEccentricity: (val: number) => void;
+  circularityError: number;
+  setCircularityError: (val: number) => void;
+
+  // Module 7 Profile of Surface (Perfil de Superfície) State
+  peakDeviation: number;
+  setPeakDeviation: (val: number) => void;
+  valleySink: number;
+  setValleySink: (val: number) => void;
 }
 
 export const useGdtStore = create<GdtState>((set) => ({
-  activeModule: 0,
-  setActiveModule: (m) => set({ activeModule: m, activeExercise: 1, onboardingStep: 1 }),
+  activeModule: 1, // Defaulting to Module 1: Tolerâncias de Forma (Planeza)
+  setActiveModule: (m) => set({ 
+    activeModule: m, 
+    activeExercise: 1, 
+    onboardingStep: 1,
+    exerciseProgress: {},
+    selectedDatumInFCF: null,
+    activeTooltip: null,
+    warpConcave: 0,
+    warpTwist: 0,
+    errorOvality: 0,
+    errorTaper: 0,
+    tiltZ: 0,
+    warpForm: 0,
+    angularError: 0,
+    eccentricity: 0,
+    circularityError: 0,
+    peakDeviation: 0,
+    valleySink: 0,
+    deviationX: 0,
+    deviationY: 0
+  }),
   
   activeTab: 'exercicios',
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -76,6 +133,51 @@ export const useGdtStore = create<GdtState>((set) => ({
   
   deviationY: 0,
   setDeviationY: (val) => set({ deviationY: val }),
+
+  // Module 1 Form Type initial values
+  formType: 'planeza',
+  setFormType: (val) => set({ formType: val }),
+
+  warpConcave: 0,
+  setWarpConcave: (val) => set({ warpConcave: val }),
+  
+  warpTwist: 0,
+  setWarpTwist: (val) => set({ warpTwist: val }),
+
+  // Module 2 Form Type initial values
+  cylinderFormType: 'circularidade',
+  setCylinderFormType: (val) => set({ cylinderFormType: val }),
+
+  errorOvality: 0,
+  setErrorOvality: (val) => set({ errorOvality: val }),
+
+  errorTaper: 0,
+  setErrorTaper: (val) => set({ errorTaper: val }),
+
+  // Module 3 Parallelism initial values
+  tiltZ: 0,
+  setTiltZ: (val) => set({ tiltZ: val }),
+
+  warpForm: 0,
+  setWarpForm: (val) => set({ warpForm: val }),
+
+  // Module 4 Perpendicularity initial values
+  angularError: 0,
+  setAngularError: (val) => set({ angularError: val }),
+
+  // Module 6 Runout initial values
+  eccentricity: 0,
+  setEccentricity: (val) => set({ eccentricity: val }),
+
+  circularityError: 0,
+  setCircularityError: (val) => set({ circularityError: val }),
+
+  // Module 7 Profile initial values
+  peakDeviation: 0,
+  setPeakDeviation: (val) => set({ peakDeviation: val }),
+
+  valleySink: 0,
+  setValleySink: (val) => set({ valleySink: val }),
 
   selectedDatumInFCF: null,
   setSelectedDatumInFCF: (val) => set({ selectedDatumInFCF: val }),
