@@ -4,6 +4,7 @@ import { useGdtStore } from '../../store/useGdtStore';
 import ExerciseEngine from '../ui/ExerciseEngine';
 
 const MODULES = [
+  'Onboarding e Fundamentos', // Módulo 0
   'Forma (Retitude, Planeza)',
   'Forma (Circularidade, Cilindricidade)',
   'Orientação (Paralelismo)',
@@ -28,8 +29,8 @@ const Column1: React.FC = () => {
           onChange={(e) => setActiveModule(Number(e.target.value))}
         >
           {MODULES.map((mod, idx) => (
-            <option key={idx + 1} value={idx + 1}>
-              Módulo {idx + 1}: {mod}
+            <option key={idx} value={idx}>
+              Módulo {idx}: {mod}
             </option>
           ))}
         </select>

@@ -1,14 +1,22 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, Grid } from '@react-three/drei';
 import FlangeModel from './FlangeModel';
 import ToleranceZones from './ToleranceZones';
 import VirtualGaugePins from './VirtualGaugePins';
+import OnboardingBlock from './OnboardingBlock';
 import { useGdtStore } from '../../store/useGdtStore';
 import * as THREE from 'three';
 
 const Viewport3D: React.FC = () => {
-  const { showToleranceZones } = useGdtStore();
+  const { showToleranceZones, activeModule, setHasInteractedWithCamera } = useGdtStore();
+  const controlsRef = useRef<any>(null);
+
+  const handleCameraChange = () => {
+    if (activeModule === 0) {
+      setHasInteractedWithCamera(true);
+    }
+  };
 
   return (
     <Canvas
@@ -38,11 +46,15 @@ const Viewport3D: React.FC = () => {
       />
 
       <Suspense fallback={null}>
-        <group position={[0, 1, 0]}>
-          <FlangeModel />
-          {showToleranceZones && <ToleranceZones />}
-          <VirtualGaugePins />
-        </group>
+        {activeModule === 0 ? (
+          <OnboardingBlock />
+        ) : (
+          <group position={[0, 1, 0]}>
+            <FlangeModel />
+            {showToleranceZones && <ToleranceZones />}
+            <VirtualGaugePins />
+          </group>
+        )}
       </Suspense>
 
       <ContactShadows 
@@ -54,11 +66,13 @@ const Viewport3D: React.FC = () => {
       />
       
       <OrbitControls 
+        ref={controlsRef}
         makeDefault 
         minPolarAngle={0} 
         maxPolarAngle={Math.PI / 2} 
         minDistance={5} 
         maxDistance={25}
+        onChange={handleCameraChange}
       />
     </Canvas>
   );

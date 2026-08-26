@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGdtStore } from '../../store/useGdtStore';
 import { CheckCircle2, ChevronRight, Calculator, Crosshair, BoxSelect, Cpu, Play } from 'lucide-react';
+import OnboardingTour from './OnboardingTour';
 
 const EXERCISES_MOD_5 = [
   { id: 1, title: 'Identificação DRF', icon: BoxSelect },
@@ -20,6 +21,10 @@ const ExerciseEngine: React.FC = () => {
 
   const [ex2Input, setEx2Input] = useState('');
   const [ex4State, setEx4State] = useState([null, null, null]);
+
+  if (activeModule === 0) {
+    return <OnboardingTour />;
+  }
 
   if (activeModule !== 5) {
     return (

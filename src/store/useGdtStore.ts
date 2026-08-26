@@ -39,11 +39,19 @@ interface GdtState {
 
   gaugeAnimationActive: boolean;
   setGaugeAnimationActive: (val: boolean) => void;
+
+  // Module 0 Onboarding State
+  showFabricationErrors: boolean;
+  setShowFabricationErrors: (val: boolean) => void;
+  onboardingStep: number;
+  setOnboardingStep: (val: number) => void;
+  hasInteractedWithCamera: boolean;
+  setHasInteractedWithCamera: (val: boolean) => void;
 }
 
 export const useGdtStore = create<GdtState>((set) => ({
-  activeModule: 5,
-  setActiveModule: (m) => set({ activeModule: m, activeExercise: 1 }),
+  activeModule: 0,
+  setActiveModule: (m) => set({ activeModule: m, activeExercise: 1, onboardingStep: 1 }),
   
   activeTab: 'exercicios',
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -85,4 +93,13 @@ export const useGdtStore = create<GdtState>((set) => ({
 
   gaugeAnimationActive: false,
   setGaugeAnimationActive: (val) => set({ gaugeAnimationActive: val }),
+
+  showFabricationErrors: false,
+  setShowFabricationErrors: (val) => set({ showFabricationErrors: val }),
+  
+  onboardingStep: 1,
+  setOnboardingStep: (val) => set({ onboardingStep: val }),
+  
+  hasInteractedWithCamera: false,
+  setHasInteractedWithCamera: (val) => set({ hasInteractedWithCamera: val }),
 }));
