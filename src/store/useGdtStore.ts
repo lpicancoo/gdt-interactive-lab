@@ -92,6 +92,17 @@ interface GdtState {
   setLengthShaft: (val: number) => void;
   lengthWasher: number;
   setLengthWasher: (val: number) => void;
+
+  // Module 9 Quiz Evaluation Scores State
+  scores: {
+    normas: number;
+    datums: number;
+    forma: number;
+    orientacao: number;
+    localizacao: number;
+  };
+  addScore: (category: 'normas' | 'datums' | 'forma' | 'orientacao' | 'localizacao') => void;
+  resetScores: () => void;
 }
 
 export const useGdtStore = create<GdtState>((set) => ({
@@ -117,6 +128,7 @@ export const useGdtStore = create<GdtState>((set) => ({
     lengthHousing: 50.00,
     lengthShaft: 45.00,
     lengthWasher: 4.50,
+    scores: { normas: 0, datums: 0, forma: 0, orientacao: 0, localizacao: 0 },
     deviationX: 0,
     deviationY: 0
   }),
@@ -199,6 +211,15 @@ export const useGdtStore = create<GdtState>((set) => ({
 
   lengthWasher: 4.50,
   setLengthWasher: (val) => set({ lengthWasher: val }),
+
+  // Module 9 Quiz Evaluation initial values
+  scores: { normas: 0, datums: 0, forma: 0, orientacao: 0, localizacao: 0 },
+  addScore: (category) => set((state) => ({
+    scores: { ...state.scores, [category]: state.scores[category] + 1 }
+  })),
+  resetScores: () => set({
+    scores: { normas: 0, datums: 0, forma: 0, orientacao: 0, localizacao: 0 }
+  }),
 
   selectedDatumInFCF: null,
   setSelectedDatumInFCF: (val) => set({ selectedDatumInFCF: val }),

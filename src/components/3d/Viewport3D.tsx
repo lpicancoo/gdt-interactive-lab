@@ -12,6 +12,7 @@ import PerpendicularBlock from './PerpendicularBlock';
 import SteppedShaftBlock from './SteppedShaftBlock';
 import CurvedProfileBlock from './CurvedProfileBlock';
 import AssemblyStackBlock from './AssemblyStackBlock';
+import GearboxHousingBlock from './GearboxHousingBlock';
 import { useGdtStore } from '../../store/useGdtStore';
 import * as THREE from 'three';
 
@@ -75,6 +76,8 @@ const Viewport3D: React.FC = () => {
           <CurvedProfileBlock />
         ) : activeModule === 8 ? (
           <AssemblyStackBlock />
+        ) : activeModule === 9 ? (
+          <GearboxHousingBlock />
         ) : null}
       </Suspense>
 

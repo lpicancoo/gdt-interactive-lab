@@ -444,6 +444,69 @@ const EXERCISES_MOD_8_DATA: Mod1Step[] = [
   }
 ];
 
+const EXERCISES_MOD_9_DATA: (Mod1Step & { categoryKey: 'normas' | 'datums' | 'forma' | 'localizacao' | 'orientacao' })[] = [
+  {
+    id: 1,
+    categoryKey: 'normas',
+    title: '1. Normas e Regras (ASME vs ISO)',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: Target,
+    scenario: 'Na norma ASME Y14.5, qual regra dita que uma característica de tamanho não deve violar seu limite de forma perfeita na Condição de Máximo Material (MMC)?',
+    options: ['Princípio da Independência (ISO 8015)', 'Regra Nº 1 (Princípio do Envelope)'],
+    correctIndex: 1,
+    comment: 'Correto! A ASME Y14.5 utiliza a Regra nº 1 (Envelope) por padrão, forçando o controle de forma dentro da tolerância dimensional. Já o sistema ISO GPS utiliza o Princípio da Independência por padrão.'
+  },
+  {
+    id: 2,
+    categoryKey: 'datums',
+    title: '2. Datums e Graus de Liberdade',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: Crosshair,
+    scenario: 'Ao fixar esta peça na mesa de desempeno para estabelecer o Datum Primário plano, quantos graus de liberdade fundamentais (de um total de 6) nós restringimos?',
+    options: ['3 Graus (1 translação e 2 rotações)', '6 Graus (Fixação total)'],
+    correctIndex: 0,
+    comment: 'Exato! Um plano de datum primário (regra 3-2-1) restringe três graus de liberdade: o movimento linear contra o plano e as duas rotações ao longo desse plano.'
+  },
+  {
+    id: 3,
+    categoryKey: 'forma',
+    title: '3. Forma vs Orientação',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: BoxSelect,
+    scenario: 'O projetista quer garantir que esta face seja perfeitamente plana E fique a exatos 90° em relação à base. Qual quadro de controle ele deve usar?',
+    options: ['Planeza [ ⏥ | 0.05 ]', 'Perpendicularidade [ ⟂ | 0.05 | A ]'],
+    correctIndex: 1,
+    comment: 'Perfeito! A Perpendicularidade é um controle de Orientação que exige um Datum (A). Ela garante o ângulo de 90° e, obrigatoriamente, já controla a Planeza (Forma) da superfície de brinde!'
+  },
+  {
+    id: 4,
+    categoryKey: 'localizacao',
+    title: '4. Localização e Condição Virtual',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: Cpu,
+    scenario: 'Os furos têm limite de diâmetro de 10.00 mm a 10.50 mm. A Posição Real exige [ ⌖ | ⌀ 0.20 Ⓜ | A | B | C ]. Qual é o diâmetro do pino de um calibrador funcional para inspecionar esses furos?',
+    options: ['10.20 mm', '9.80 mm'],
+    correctIndex: 1,
+    comment: 'Resposta de Especialista! O pino calibrador deve ter o tamanho da Condição Virtual (Pior Caso): o diâmetro em MMC (o menor furo, 10.00) menos a tolerância geométrica (0.20), resultando em pinos exatos de 9.80 mm.'
+  },
+  {
+    id: 5,
+    categoryKey: 'orientacao',
+    title: '5. Batimento (Runout)',
+    level: 'Quiz',
+    type: 'quiz',
+    icon: Award,
+    scenario: 'Para controlar o Batimento Total deste alojamento rotativo em relação a um eixo, é permitido adicionar um modificador de Máximo Material Ⓜ ao quadro?',
+    options: ['Sim, pois o furo tem diâmetro', 'Não, é proibido na norma'],
+    correctIndex: 1,
+    comment: 'Isso aí! Independentemente de ser um furo ou eixo, os controles de Batimento (Circular e Total) NÃO permitem modificadores de material. Eles operam sempre na condição independente do tamanho (RFS).'
+  }
+];
+
 const ExerciseEngine: React.FC = () => {
   const { 
     activeModule, activeExercise, setActiveExercise, 
@@ -455,7 +518,8 @@ const ExerciseEngine: React.FC = () => {
     angularError, selectedDatumInFCF,
     eccentricity, circularityError,
     peakDeviation, valleySink,
-    lengthHousing, lengthShaft, lengthWasher
+    lengthHousing, lengthShaft, lengthWasher,
+    addScore
   } = useGdtStore();
 
   const [ex2Input, setEx2Input] = useState('');
@@ -465,12 +529,20 @@ const ExerciseEngine: React.FC = () => {
     return <OnboardingTour />;
   }
 
-  // Helper renderer for hybrid steps (Modules 1, 2, 3, 4, 5, 6 and 7)
+  // Helper renderer for hybrid steps (Modules 1 to 9)
   const renderHybridModule = (title: string, data: Mod1Step[], modId: number) => {
     const handleSelectOption = (exId: number, optIdx: number, correctIdx: number) => {
       setUserAnswers((prev) => ({ ...prev, [exId]: optIdx }));
       const isCorrect = optIdx === correctIdx;
       setExerciseProgress(exId, isCorrect);
+
+      // Module 9 Quiz score tracking
+      if (modId === 9 && isCorrect) {
+        const item = EXERCISES_MOD_9_DATA.find((q) => q.id === exId);
+        if (item) {
+          addScore(item.categoryKey);
+        }
+      }
     };
 
     return (
@@ -863,6 +935,11 @@ const ExerciseEngine: React.FC = () => {
     }
 
     return renderHybridModule('Exercícios: Módulo 8 (Stack-Up de Tolerâncias)', EXERCISES_MOD_8_DATA, 8);
+  }
+
+  // Module 9 Quiz Evaluation Implementation (Avaliação Geral)
+  if (activeModule === 9) {
+    return renderHybridModule('Simulado de Avaliação Geral', EXERCISES_MOD_9_DATA, 9);
   }
 
   return null;

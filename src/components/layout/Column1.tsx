@@ -1,21 +1,30 @@
-import { BookOpen, Target } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, Target, Award, CheckCircle2, AlertTriangle, RotateCcw } from 'lucide-react';
 import { useGdtStore } from '../../store/useGdtStore';
 import ExerciseEngine from '../ui/ExerciseEngine';
 
 const MODULES = [
-  'Onboarding e Fundamentos', // Módulo 0
-  'Forma (Retitude, Planeza)',
-  'Forma (Circularidade, Cilindricidade)',
-  'Orientação (Paralelismo)',
-  'Orientação (Perpendicularidade)',
-  'Posição Real',
-  'Batimento Circular',
-  'Batimento Total',
-  'Perfil de Superfície',
+  'Módulo 0: Onboarding e Fundamentos',
+  'Módulo 1: Forma (Planeza / Retilineidade)',
+  'Módulo 2: Forma (Circularidade / Cilindricidade)',
+  'Módulo 3: Orientação (Paralelismo)',
+  'Módulo 4: Orientação (Perpendicularidade)',
+  'Módulo 5: Posição Real (True Position)',
+  'Módulo 6: Batimento Circular (Runout)',
+  'Módulo 7: Perfil de Superfície',
+  'Módulo 8: Stack-Up de Tolerâncias',
+  'Módulo 9: Avaliação Geral e Estatísticas',
 ];
 
 const Column1: React.FC = () => {
-  const { activeModule, setActiveModule, activeTab, setActiveTab } = useGdtStore();
+  const { 
+    activeModule, setActiveModule, 
+    activeTab, setActiveTab,
+    scores, resetScores,
+    setActiveExercise
+  } = useGdtStore();
+
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
 
   return (
     <div className="flex flex-col h-full text-sm">
@@ -288,7 +297,7 @@ const Column1: React.FC = () => {
                 </ul>
               </div>
             </div>
-          ) : (
+          ) : activeModule === 8 ? (
             <div className="space-y-4">
               <h3 className="font-bold text-slate-800 text-lg">Módulo 8: Stack-Up de Tolerâncias</h3>
               <p className="text-slate-600 leading-relaxed text-sm">
@@ -311,6 +320,182 @@ const Column1: React.FC = () => {
                   </li>
                 </ul>
               </div>
+            </div>
+          ) : (
+            /* Module 9: Real-time Dashboard & Performance Statistics */
+            <div className="space-y-5">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-lg">Módulo 9: Avaliação Geral</h3>
+                  <p className="text-xs text-slate-500">Dashboard de Desempenho e Estatísticas em Tempo Real</p>
+                </div>
+                <div className="bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1.5">
+                  <Award size={16} />
+                  <span>
+                    Acertos: {scores.normas + scores.datums + scores.forma + scores.orientacao + scores.localizacao} / 5
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold text-slate-600">
+                  <span>Progresso Geral do Simulado</span>
+                  <span>{((scores.normas + scores.datums + scores.forma + scores.orientacao + scores.localizacao) / 5 * 100).toFixed(0)}%</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                  <div 
+                    className="h-full bg-emerald-500 transition-all duration-500" 
+                    style={{ width: `${((scores.normas + scores.datums + scores.forma + scores.orientacao + scores.localizacao) / 5) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Category Scorecards List */}
+              <div className="space-y-2.5 pt-1">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Status por Categoria de Conhecimento
+                </h4>
+
+                {/* 1. Normas e Regras */}
+                <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-sm">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-800">1. Normas e Regras (ASME vs ISO)</span>
+                    <p className="text-[11px] text-slate-500">Regra nº 1 da ASME Y14.5 e Princípio do Envelope</p>
+                  </div>
+                  {scores.normas === 1 ? (
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle2 size={14} /> Dominado
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
+                      <AlertTriangle size={14} /> Revisar Módulo 0
+                    </span>
+                  )}
+                </div>
+
+                {/* 2. Datums e Graus de Liberdade */}
+                <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-sm">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-800">2. Datums e Referenciais (3-2-1)</span>
+                    <p className="text-[11px] text-slate-500">Restrição de 3 Graus de Liberdade no Datum Primário</p>
+                  </div>
+                  {scores.datums === 1 ? (
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle2 size={14} /> Dominado
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
+                      <AlertTriangle size={14} /> Revisar Módulos 1 e 3
+                    </span>
+                  )}
+                </div>
+
+                {/* 3. Forma vs Orientação */}
+                <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-sm">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-800">3. Forma vs Orientação</span>
+                    <p className="text-[11px] text-slate-500">Perpendicularidade engloba a Planeza de brinde</p>
+                  </div>
+                  {scores.forma === 1 ? (
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle2 size={14} /> Dominado
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
+                      <AlertTriangle size={14} /> Revisar Módulos 1 e 4
+                    </span>
+                  )}
+                </div>
+
+                {/* 4. Localização e Condição Virtual */}
+                <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-sm">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-800">4. Localização e Condição Virtual</span>
+                    <p className="text-[11px] text-slate-500">Cálculo de Pino Calibrador Funcional (MMC - Tol)</p>
+                  </div>
+                  {scores.localizacao === 1 ? (
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle2 size={14} /> Dominado
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
+                      <AlertTriangle size={14} /> Revisar Módulo 5
+                    </span>
+                  )}
+                </div>
+
+                {/* 5. Batimento (Runout) */}
+                <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-sm">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-800">5. Batimento (Runout & RFS)</span>
+                    <p className="text-[11px] text-slate-500">Proibição de modificadores de material em Batimento</p>
+                  </div>
+                  {scores.orientacao === 1 ? (
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle2 size={14} /> Dominado
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 flex items-center gap-1">
+                      <AlertTriangle size={14} /> Revisar Módulo 6
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions & Certificate Buttons */}
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  onClick={() => setShowCertificateModal(true)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
+                >
+                  <Award size={16} /> Gerar Certificado de Conclusão GD&T
+                </button>
+
+                <button
+                  onClick={() => {
+                    resetScores();
+                    setActiveExercise(1);
+                  }}
+                  className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors"
+                >
+                  <RotateCcw size={14} /> Refazer Avaliação
+                </button>
+              </div>
+
+              {/* Certificate Modal */}
+              {showCertificateModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+                  <div className="bg-white rounded-2xl p-6 max-w-md w-full border-4 border-emerald-500 shadow-2xl space-y-4 text-center">
+                    <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                      <Award size={36} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">CERTIFICADO DE CONCLUÇÃO</span>
+                      <h2 className="font-extrabold text-slate-900 text-xl mt-1">GD&T Interactive Lab</h2>
+                      <p className="text-xs text-slate-500 mt-1">Dimensionamento Geométrico e Toleranciamento</p>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-2">
+                      <p className="font-semibold">
+                        Certificamos que o usuário concluiu com êxito todos os 9 Módulos do laboratório virtual de tolerâncias geométricas, obtendo a pontuação de:
+                      </p>
+                      <div className="text-lg font-mono font-extrabold text-emerald-600 bg-emerald-50 py-1 rounded border border-emerald-200">
+                        {scores.normas + scores.datums + scores.forma + scores.orientacao + scores.localizacao} / 5 Questões Corretas ({((scores.normas + scores.datums + scores.forma + scores.orientacao + scores.localizacao) / 5 * 100).toFixed(0)}%)
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-center">
+                      <button
+                        onClick={() => setShowCertificateModal(false)}
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition-colors shadow"
+                      >
+                        Fechar Certificado
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )
         ) : (

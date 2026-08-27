@@ -481,6 +481,21 @@ const MetrologyPanel: React.FC = () => {
     );
   }
 
+  if (activeModule === 9) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="bg-emerald-50/70 p-4 rounded-xl border border-emerald-200">
+          <h4 className="font-bold text-emerald-900 text-xs mb-1.5 flex items-center gap-1.5">
+            <span>🎓</span> Simulado de Avaliação Geral
+          </h4>
+          <p className="text-xs text-emerald-700 leading-relaxed">
+            Responda às 5 questões do Quiz abaixo. O modelo 3D ao centro destacará a região correspondente a cada pergunta e seu placar será atualizado no Dashboard à esquerda.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">

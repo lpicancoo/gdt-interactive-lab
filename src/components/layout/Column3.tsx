@@ -1,6 +1,7 @@
 import React from 'react';
 import FeatureControlFrame from '../ui/FeatureControlFrame';
 import MetrologyPanel from '../ui/MetrologyPanel';
+import ExerciseEngine from '../ui/ExerciseEngine';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useGdtStore } from '../../store/useGdtStore';
 
@@ -70,12 +71,20 @@ const Column3: React.FC = () => {
 
         {/* Section 2: Simulação da Peça Fabricada */}
         <div>
-          <h3 className="text-sm font-bold text-slate-800 mb-3 border-b pb-1">Seção 2: Simulação da Peça Fabricada</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-3 border-b pb-1">
+            {activeModule === 9 ? 'Seção 2: Orientação do Simulado' : 'Seção 2: Simulação da Peça Fabricada'}
+          </h3>
           <MetrologyPanel />
         </div>
 
-        {/* Calculator */}
-        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-sm flex flex-col gap-2">
+        {/* Section 3 / Quiz Engine */}
+        {activeModule === 9 ? (
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 mb-3 border-b pb-1">Seção 3: Quiz de Avaliação</h3>
+            <ExerciseEngine />
+          </div>
+        ) : (
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-sm flex flex-col gap-2">
           {isModule1 ? (
             <>
               <div className="flex justify-between">
@@ -274,6 +283,7 @@ const Column3: React.FC = () => {
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   );

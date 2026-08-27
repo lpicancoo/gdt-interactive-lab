@@ -442,6 +442,35 @@ const FeatureControlFrame: React.FC = () => {
     );
   }
 
+  if (activeModule === 9) {
+    return (
+      <div className="flex flex-col gap-3 items-start">
+        <div className="relative inline-flex flex-col">
+          <div 
+            className="inline-flex border-2 border-slate-800 rounded text-slate-800 font-mono text-sm font-bold divide-x-2 divide-slate-800 bg-white shadow-sm overflow-hidden items-center select-none cursor-pointer hover:bg-blue-50 transition-colors"
+            onClick={() => handleSymbolClick("Avaliação Geral: Exame final cobrindo Normas, Datums, Forma, Orientação, Posição e Batimento.")}
+          >
+            <div className="px-3.5 py-1.5 bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider">
+              Exame Final
+            </div>
+            <div className="px-4 py-1.5 text-slate-800 text-xs">
+              Simulado de Avaliação Geral
+            </div>
+            <div className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs">
+              5 Tópicos
+            </div>
+          </div>
+
+          {activeTooltip && (
+            <div className="absolute top-full mt-2 left-0 w-72 p-3 bg-slate-800 text-white text-xs rounded-lg shadow-xl z-50 leading-relaxed border border-slate-700">
+              {activeTooltip}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative inline-flex flex-col">
       <div className="inline-flex border-2 border-slate-800 rounded text-slate-800 font-mono text-lg divide-x-2 divide-slate-800 bg-white shadow-sm overflow-hidden items-center select-none">
