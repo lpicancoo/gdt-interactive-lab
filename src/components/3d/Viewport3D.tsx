@@ -4,25 +4,47 @@ import { OrbitControls, ContactShadows, Grid } from '@react-three/drei';
 import FlangeModel from './FlangeModel';
 import ToleranceZones from './ToleranceZones';
 import VirtualGaugePins from './VirtualGaugePins';
-import OnboardingBlock from './OnboardingBlock';
-import FlatnessBlock from './FlatnessBlock';
-import CylinderBlock from './CylinderBlock';
-import ParallelBlock from './ParallelBlock';
 import PerpendicularBlock from './PerpendicularBlock';
 import SteppedShaftBlock from './SteppedShaftBlock';
-import CurvedProfileBlock from './CurvedProfileBlock';
-import AssemblyStackBlock from './AssemblyStackBlock';
-import GearboxHousingBlock from './GearboxHousingBlock';
+import BlockSingleHole from './BlockSingleHole';
+import DatumTargetsPlateBlock from './DatumTargetsPlateBlock';
 import { useGdtStore } from '../../store/useGdtStore';
+import { CURRICULUM_MODULES } from '../../data/curriculumData';
 import * as THREE from 'three';
 
 const Viewport3D: React.FC = () => {
   const { showToleranceZones, activeModule, setHasInteractedWithCamera } = useGdtStore();
   const controlsRef = useRef<any>(null);
 
+  const currentModule = CURRICULUM_MODULES[activeModule] || CURRICULUM_MODULES[0];
+  const modelType = currentModule?.model3DConfig?.modelType;
+
   const handleCameraChange = () => {
     if (activeModule === 0) {
       setHasInteractedWithCamera(true);
+    }
+  };
+
+  const renderModel = () => {
+    switch (modelType) {
+      case 'block_single_hole':
+        return <BlockSingleHole />;
+      case 'stepped_shaft':
+        return <SteppedShaftBlock />;
+      case 'datum_targets_plate':
+        return <DatumTargetsPlateBlock />;
+      case 'bracket_L':
+        return <PerpendicularBlock />;
+      case 'flange_4holes':
+        return (
+          <group position={[0, 1, 0]}>
+            <FlangeModel />
+            {showToleranceZones && <ToleranceZones />}
+            <VirtualGaugePins />
+          </group>
+        );
+      default:
+        return <BlockSingleHole />;
     }
   };
 
@@ -53,31 +75,7 @@ const Viewport3D: React.FC = () => {
       />
 
       <Suspense fallback={null}>
-        {activeModule === 0 ? (
-          <OnboardingBlock />
-        ) : activeModule === 1 ? (
-          <FlatnessBlock />
-        ) : activeModule === 2 ? (
-          <CylinderBlock />
-        ) : activeModule === 3 ? (
-          <ParallelBlock />
-        ) : activeModule === 4 ? (
-          <PerpendicularBlock />
-        ) : activeModule === 5 ? (
-          <group position={[0, 1, 0]}>
-            <FlangeModel />
-            {showToleranceZones && <ToleranceZones />}
-            <VirtualGaugePins />
-          </group>
-        ) : activeModule === 6 ? (
-          <SteppedShaftBlock />
-        ) : activeModule === 7 ? (
-          <CurvedProfileBlock />
-        ) : activeModule === 8 ? (
-          <AssemblyStackBlock />
-        ) : activeModule === 9 ? (
-          <GearboxHousingBlock />
-        ) : null}
+        {renderModel()}
       </Suspense>
 
       <ContactShadows 

@@ -93,6 +93,10 @@ interface GdtState {
   lengthWasher: number;
   setLengthWasher: (val: number) => void;
 
+  // Dynamic Slider State for Curriculum Modules
+  sliderValues: Record<string, number>;
+  setSliderValue: (key: string, value: number) => void;
+
   // Module 9 Quiz Evaluation Scores State
   scores: {
     normas: number;
@@ -130,11 +134,41 @@ export const useGdtStore = create<GdtState>((set) => ({
     lengthWasher: 4.50,
     scores: { normas: 0, datums: 0, forma: 0, orientacao: 0, localizacao: 0 },
     deviationX: 0,
-    deviationY: 0
+    deviationY: 0,
+    sliderValues: {
+      holeDiameter: 3.000,
+      deviationX: 0.000,
+      deviationY: 0.000,
+      temperature: 20,
+      thermalExpansion: 0.000,
+      shaftDiameter: 1.020,
+      bendingBowing: 0.000,
+      datumSurfaceError: 0.020,
+      shiftMovement: 0.000
+    }
   }),
   
   activeTab: 'exercicios',
   setActiveTab: (tab) => set({ activeTab: tab }),
+
+  sliderValues: {
+    holeDiameter: 3.000,
+    deviationX: 0.000,
+    deviationY: 0.000,
+    temperature: 20,
+    thermalExpansion: 0.000,
+    shaftDiameter: 1.020,
+    bendingBowing: 0.000,
+    datumSurfaceError: 0.020,
+    shiftMovement: 0.000
+  },
+  setSliderValue: (key, val) => set((state) => ({
+    sliderValues: { ...state.sliderValues, [key]: val },
+    // Also sync with legacy fields if matching key exists
+    ...(key === 'holeDiameter' ? { holeDiameter: val } : {}),
+    ...(key === 'deviationX' ? { deviationX: val } : {}),
+    ...(key === 'deviationY' ? { deviationY: val } : {})
+  })),
 
   activeExercise: 1,
   setActiveExercise: (ex) => set({ activeExercise: ex }),

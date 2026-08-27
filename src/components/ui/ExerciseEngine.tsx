@@ -1,831 +1,273 @@
 import React, { useState, useEffect } from 'react';
 import { useGdtStore } from '../../store/useGdtStore';
-import { CheckCircle2, ChevronRight, Calculator, Crosshair, BoxSelect, Cpu, Target, ShieldAlert, Award } from 'lucide-react';
-import OnboardingTour from './OnboardingTour';
-
-interface Mod1Step {
-  id: number;
-  title: string;
-  level: string;
-  type: 'interactive' | 'quiz';
-  icon: any;
-  // Interactive properties
-  text?: string;
-  // Quiz properties
-  scenario?: string;
-  options?: string[];
-  correctIndex?: number;
-  comment?: string;
-}
-
-const EXERCISES_MOD_1_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. A Armadilha do 2D',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Selecione "Retilineidade (2D)" no painel direito. Ajuste a "Torção da Face" para o máximo (0.10 mm). Note que a peça torce nos cantos, mas a fatia central continua reta. O sistema APROVA a peça.'
-  },
-  {
-    id: 2,
-    title: '2. A Verificação 3D',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: Crosshair,
-    text: 'Agora, sem mexer na torção, mude a chave para "Planeza (3D)". O envelope verde cobre toda a peça e cruza a malha torcida. A peça REPROVA imediatamente. Isso prova que uma peça reta em uma direção pode não ser plana!'
-  },
-  {
-    id: 3,
-    title: '3. O Erro do Estagiário',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'Um desenhista alterou a Planeza para [ ⏥ | 0.05 | A ]. Pelas normas, isso está correto?',
-    options: ['Sim', 'Não, está errado'],
-    correctIndex: 1,
-    comment: 'Correto! Tolerâncias de forma avaliam elementos isolados. Elas medem a superfície contra ela mesma, nunca utilizando Datums de referência.'
-  },
-  {
-    id: 4,
-    title: '4. A Busca pelo Bônus (A Pegadinha)',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Calculator,
-    scenario: 'Você aprendeu sobre o MMC (Ⓜ) no Módulo 0. Podemos colocar um Ⓜ na Planeza [ ⏥ | 0.05 Ⓜ ] para tentar ganhar tolerância bônus na face?',
-    options: ['Sim, é permitido', 'Não, é proibido'],
-    correctIndex: 1,
-    comment: 'Excelente! Modificadores MMC geram Bônus apenas para "Elementos de Tamanho" (como furos e eixos). Uma superfície plana isolada não tem diâmetro controlável, logo, é proibido usar o Ⓜ.'
-  },
-  {
-    id: 5,
-    title: '5. Salvando o Lote',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'A placa empenou (0.07 mm do pico ao vale). A Planeza exigida é 0.05 mm. Qual a forma mais inteligente de salvar a peça?',
-    options: ['Usinar a face toda', 'Dar um passe leve nos picos'],
-    correctIndex: 1,
-    comment: 'Resposta de Especialista! A Planeza controla apenas a variação da forma. Rebaixando levemente apenas os picos mais altos, a diferença para o vale cai para dentro dos 0.05 mm, salvando a peça rapidamente.'
-  }
-];
-
-const EXERCISES_MOD_2_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. O Cone Perfeito',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Ative a chave "Circularidade (2D)". Aumente o slider "Erro de Conicidade" ao máximo, mantendo a ovalização em zero.'
-  },
-  {
-    id: 2,
-    title: '2. O Custo do 3D',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: Crosshair,
-    text: 'Sem alterar os sliders, mude a chave para "Cilindricidade (3D)".'
-  },
-  {
-    id: 3,
-    title: '3. Uso de Datums',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'Para inspecionar um eixo longo, um metrologista quer adicionar o centro da peça como Datum A no FCF de Cilindricidade. Isso é correto segundo as normas?',
-    options: ['Sim', 'Não'],
-    correctIndex: 1,
-    comment: 'Correto! Por serem controles de forma, Circularidade e Cilindricidade medem a superfície contra ela mesma. NUNCA utilizamos Datums nessas tolerâncias.'
-  },
-  {
-    id: 4,
-    title: '4. O Desafio da Vedação',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Calculator,
-    scenario: 'Um pino precisa deslizar perfeitamente dentro de uma bucha hidráulica de alta precisão, sem vazar óleo por nenhuma parte do seu comprimento longo. Qual controle você especifica?',
-    options: ['Circularidade (◯)', 'Cilindricidade (⌭)'],
-    correctIndex: 1,
-    comment: 'Exato! Como o óleo não pode vazar por toda a extensão da peça, precisamos do controle de superfície total (3D) que a Cilindricidade garante.'
-  },
-  {
-    id: 5,
-    title: '5. MMC em Eixos',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'O eixo tem um diâmetro de 50 mm. O projetista sugeriu colocar um modificador Ⓜ [ ⌭ | 0.05 Ⓜ ] para dar bônus à manufatura. É permitido?',
-    options: ['Permitido', 'Proibido'],
-    correctIndex: 1,
-    comment: 'Perfeito! Mesmo o eixo sendo um elemento de tamanho, a norma proíbe aplicar modificadores de material (MMC/LMC) em tolerâncias de forma. A tolerância de 0.05 mm permanece fixa, não importa o diâmetro da peça.'
-  }
-];
-
-const EXERCISES_MOD_3_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. Inclinando a Peça',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Ajuste o slider de "Inclinação da Face" para 0.08 mm. Observe a face superior da malha 3D atravessar os planos verdes paralelos. O sistema deve acusar a reprovação.'
-  },
-  {
-    id: 2,
-    title: '2. A Necessidade do Datum',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'Um colega desenhista enviou para a fábrica um desenho com o quadro [ // | 0.05 ] (sem a letra A no final). A fábrica pode produzir a peça?',
-    options: ['Sim, a fábrica assume a base', 'Não, falta o referencial'],
-    correctIndex: 1,
-    comment: 'Correto! É impossível inspecionar paralelismo sem saber paralelo a quê. Se o Datum for omitido, a peça fica solta no espaço, impossibilitando qualquer medição confiável.'
-  },
-  {
-    id: 3,
-    title: '3. Forma vs Orientação',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Crosshair,
-    scenario: 'Nossa especificação é [ // | 0.05 | A ]. Se a peça for fresada perfeitamente paralela à base, mas a face superior estiver curvada/empenada com 0.08 mm de profundidade, ela é aprovada?',
-    options: ['Sim', 'Não'],
-    correctIndex: 1,
-    comment: 'Exato! Uma tolerância de orientação também controla a forma da superfície. Para a face caber dentro da zona de 0.05 mm, o empenamento (forma) dela não pode passar de 0.05 mm de jeito nenhum!'
-  },
-  {
-    id: 4,
-    title: '4. Configuração de Medição',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Cpu,
-    scenario: 'Como um inspetor de qualidade faria essa medição na prática em uma bancada tradicional?',
-    options: ['Paquímetro nas duas pontas', 'Apoiar a base na Mesa de Desempeno e usar Relógio Comparador em cima'],
-    correctIndex: 1,
-    comment: 'Resposta de Especialista! O paquímetro mede tamanho, não orientação. A mesa de desempeno atua fisicamente como o Simulador do Datum A, restringindo os graus de liberdade para que o relógio varra a superfície e capture a inclinação real.'
-  },
-  {
-    id: 5,
-    title: '5. Modificador de Material',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'A superfície superior que estamos controlando pode receber o modificador de Máximo Material (Ⓜ) logo após o valor de tolerância? Ex: [ // | 0.05 Ⓜ | A ].',
-    options: ['Sim', 'Não'],
-    correctIndex: 1,
-    comment: 'Perfeito! A face de um bloco não é um "Elemento de Tamanho" (Feature of Size). Como não é um furo ou eixo com diâmetro, não existe condição de máximo material, proibindo o uso do modificador Ⓜ nesta superfície.'
-  }
-];
-
-const EXERCISES_MOD_4_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. Inclinando o Suporte',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Ajuste o slider de "Erro Angular da Face" para +0.06 mm. A face vertical vai se inclinar e romper os planos verdes de 90°.'
-  },
-  {
-    id: 2,
-    title: '2. Tolerância Angular Convencional',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'Um torneiro mecânico perguntou por que você não colocou 90° ± 0.5° no desenho ao invés do quadro de Perpendicularidade [ ⟂ | 0.05 | A ]. Qual é o problema do ângulo ±?',
-    options: ['A zona de erro em graus aumenta em formato de leque', 'O símbolo de graus é obsoleto na ISO'],
-    correctIndex: 0,
-    comment: 'Correto! Uma tolerância de ± 0.5° cria uma zona em forma de leque (cone): quanto mais alta for a peça, maior será a folga no topo, gerando montagens imprevisíveis. A zona de GD&T usa planos paralelos, garantindo o mesmo erro máximo independentemente da altura.'
-  },
-  {
-    id: 3,
-    title: '3. Forma vs Orientação',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Crosshair,
-    scenario: 'O suporte não está inclinado (0 graus de erro), mas a aba vertical torceu no forno e ganhou uma "barriga" de 0.08 mm. O desenho pede [ ⟂ | 0.05 | A ]. Ele aprova?',
-    options: ['Sim, pois o ângulo é 90°', 'Não, a barriga reprova a peça'],
-    correctIndex: 1,
-    comment: 'Exato! Toda tolerância de orientação também controla a forma indiretamente. Se a "barriga" (falta de planeza) tem 0.08 mm, é fisicamente impossível a face inteira caber dentro de uma zona vertical de 0.05 mm.'
-  },
-  {
-    id: 4,
-    title: '4. Eixos e Pinos',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Cpu,
-    scenario: 'Se, ao invés de uma face plana, estivéssemos controlando um pino cilíndrico perpendicular a uma base, o quadro deveria mudar?',
-    options: ['Sim, adicionando o símbolo de diâmetro ⌀', 'Não, continua igual'],
-    correctIndex: 0,
-    comment: 'Resposta perfeita! Se a característica fosse um pino (um eixo de revolução), a zona de tolerância deixaria de ser formada por dois planos paralelos e passaria a ser um Cilindro perfeito a 90°. O FCF ficaria [ ⟂ | ⌀ 0.05 | A ].'
-  },
-  {
-    id: 5,
-    title: '5. Chão de Fábrica (Metrologia)',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'Como o inspetor deve posicionar a peça no laboratório de controle de qualidade para testar o Referencial A?',
-    options: ['Apoiar a base na mesa de desempeno', 'Prender a aba em uma morsa'],
-    correctIndex: 0,
-    comment: 'Excelente! O Datum Primário "A" exige que a base da peça (superfície imperfeita) seja estabilizada sobre o simulador de Datum (a mesa de desempeno perfeita) com no mínimo 3 pontos de contato antes de iniciarmos a varredura da face vertical.'
-  }
-];
-
-const EXERCISES_MOD_5_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. A Regra do 3-2-1',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Antes de medir os furos da flange, precisamos travá-la no espaço 3D. Clique na célula do FCF que restringe a transição Z e as rotações u, v (O Datum Primário).'
-  },
-  {
-    id: 2,
-    title: '2. A Mágica do Bônus',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: Calculator,
-    text: 'Mova o slider "Diâmetro Usinado" para 10.35 mm. Observe o cilindro verde crescer na tela e preencha a calculadora abaixo com a nova Tolerância Total permitida.',
-    comment: 'Correto! Como o furo ficou 0.35 mm maior que o MMC (10.00 mm), esse valor é somado aos 0.20 mm originais, resultando em 0.55 mm de margem de erro posicional.'
-  },
-  {
-    id: 3,
-    title: '3. Fuga do Eixo',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: Crosshair,
-    text: 'Agora, sem mexer no diâmetro (mantenha em 10.35 mm), mova os sliders de desvio X e Y simulando que a ferramenta "escorregou" durante a furação. Veja até onde você consegue ir antes da peça reprovar.'
-  },
-  {
-    id: 4,
-    title: '4. O Calibrador Funcional (Go/No-Go)',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Cpu,
-    scenario: 'Para evitar medir furo por furo com a máquina CMM, o operador de qualidade quer fabricar uma base com 4 pinos fixos. Se a flange encaixar nesses 4 pinos de uma vez, ela está aprovada. Qual deve ser o diâmetro de cada pino calibrador?',
-    options: ['10.20 mm', '9.80 mm'],
-    correctIndex: 1,
-    comment: 'Excelente! O calibrador é usinado na Condição Virtual (Virtual Condition). É o pior cenário possível de montagem: O menor furo permitido (MMC = 10.00) menos a tolerância posicional (0.20), resultando em pinos exatos de 9.80 mm de diâmetro.'
-  },
-  {
-    id: 5,
-    title: '5. Modificador no Referencial',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'O referencial Secundário no quadro é B Ⓜ. Este furo piloto central também recebeu um modificador de material. O que acontece se o furo central for usinado com um diâmetro maior?',
-    options: ['O padrão de 4 furos pode "escorregar" como um todo', 'A tolerância dos 4 furos aumenta individualmente'],
-    correctIndex: 0,
-    comment: 'Resposta de Especialista! O modificador MMB (Maximum Material Boundary) aplicado ao Datum B cria uma folga entre a peça e o pino centralizador do dispositivo de medição. Isso permite que a peça inteira sofra um deslocamento global (shift), salvando peças que estariam reprovadas em um alinhamento rígido.'
-  }
-];
-
-const EXERCISES_MOD_6_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. O Efeito da Excentricidade',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Aumente o slider "Erro de Excentricidade" para 0.03 mm. Observe no 3D como a superfície central começa a oscilar "mancando", empurrando o relógio comparador para cima e para baixo.'
-  },
-  {
-    id: 2,
-    title: '2. O Que Causa a Oscilação?',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'O eixo foi usinado sem nenhuma excentricidade (centro perfeito), mas a ferramenta desgastada deixou a peça ovalada em 0.06 mm. O Batimento Circular aprova essa peça?',
-    options: ['Sim, pois está centralizada', 'Não, a ovalização reprova'],
-    correctIndex: 1,
-    comment: 'Correto! O Batimento é um controle duplo. O relógio comparador sobe e desce tanto por erros de centro (excentricidade) quanto por erros de forma (circularidade). Uma ovalização de 0.06 mm gerará uma oscilação de 0.06 mm, reprovando o limite de 0.05 mm.'
-  },
-  {
-    id: 3,
-    title: '3. Batimento Circular vs Total',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Crosshair,
-    scenario: 'Se usássemos o símbolo de Batimento Total [ ⌰ ] ao invés do Circular [ ↗ ], qual seria a diferença na medição?',
-    options: ['Nenhuma, medem a mesma coisa', 'O relógio varre todo o comprimento do cilindro'],
-    correctIndex: 1,
-    comment: 'Resposta de Especialista! O Batimento Circular avalia apenas fatias individuais 2D (seções transversais). O Batimento Total exige que o relógio comparador deslize por toda a extensão do cilindro 3D simultaneamente, controlando também a cilindricidade e a conicidade.'
-  },
-  {
-    id: 4,
-    title: '4. O Eixo de Referência A-B',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Cpu,
-    scenario: 'Por que usamos um Datum composto "A-B" em vez de apenas "A"?',
-    options: ['Para alinhar a peça por dois mancais', 'Para dar bônus de material'],
-    correctIndex: 0,
-    comment: 'Exato! Um eixo de transmissão longo balançaria se fosse referenciado por apenas uma ponta. Apoiar nos dois mancais (A e B) ao mesmo tempo simula perfeitamente como o eixo vai girar na máquina real.'
-  },
-  {
-    id: 5,
-    title: '5. MMC em Batimento',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'Você precisa que o eixo passe na inspeção a todo custo. É permitido aplicar o modificador de Máximo Material Ⓜ na tolerância de batimento? Ex: [ ↗ | 0.05 Ⓜ | A-B ].',
-    options: ['Sim, se for FOS', 'Não, é proibido'],
-    correctIndex: 1,
-    comment: 'Perfeito! A norma ASME e a ISO GPS proíbem o uso de modificadores de estado de material (MMC/LMC) em tolerâncias de batimento (Runout). A tolerância deve ser aplicada sempre na condição independente do tamanho (RFS).'
-  }
-];
-
-const EXERCISES_MOD_7_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. Deformando a Superfície',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Ajuste o slider "Desvio Máximo de Pico" para +0.15 mm. Observe no 3D o mapa de calor mudar para vermelho onde a malha ultrapassa o envelope verde superior.'
-  },
-  {
-    id: 2,
-    title: '2. Perfil de Linha vs Perfil de Superfície',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'Se trocássemos o símbolo de Perfil de Superfície [ ⌓ ] pelo símbolo de Perfil de Linha [ ⌒ ], como seria a inspeção por scanner ou CMM?',
-    options: ['Apenas em fatias 2D individuais da curva', 'A superfície 3D inteira continuaria sendo measured'],
-    correctIndex: 0,
-    comment: 'Correto! O Perfil de Linha (⌒) atua em cortes transversais 2D individuais (como passar um gabarito de chapa em uma seção). O Perfil de Superfície (⌓) engloba todos os pontos tridimensionais da face curva simultaneamente.'
-  },
-  {
-    id: 3,
-    title: '3. Perfil Sem Datums',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Crosshair,
-    scenario: 'Um desenho de um molde de plástico exibe [ ⌓ | 0.20 ] sem nenhum Datum. O que esse quadro está controlando?',
-    options: ['Apenas a forma/ondulação da curva', 'A posição da curva em relação à base'],
-    correctIndex: 0,
-    comment: 'Exato! Sem Datums, a zona de tolerância pode flutuar e girar livremente no espaço para se ajustar à peça, controlando unicamente a suavidade e a forma da superfície (atua como uma \'Planeza para superfícies curvas\').'
-  },
-  {
-    id: 4,
-    title: '4. Zonas Unilaterais (Modificador Ⓤ)',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Cpu,
-    scenario: 'Na norma ASME Y14.5, um engenheiro adicionou o modificador Ⓤ no perfil: [ ⌓ | 0.20 Ⓤ 0.20 | A ]. O que isso significa para a usinagem?',
-    options: ['Toda a tolerância de 0.20 mm está para FORA do material', 'A tolerância foi dividida igualmente ±0.10 mm'],
-    correctIndex: 0,
-    comment: 'Resposta de Especialista! O modificador Ⓤ (Unequally Disposed Profile) permite deslocar a zona. O valor após o Ⓤ indica quanto da tolerância está direcionado para fora da peça (adicionando material), crucial para operações de fundição que ainda serão usinadas.'
-  },
-  {
-    id: 5,
-    title: '5. Comparação com CMM / Escaneamento 3D',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'Como a metrologia moderna normalmente inspeciona uma tolerância de Perfil de Superfície em peças automotivas ou aeroespaciais?',
-    options: ['Paquímetro e goniômetro', 'Escaneamento a Laser 3D comparando a nuvem de pontos com o CAD'],
-    correctIndex: 1,
-    comment: 'Perfeito! O software de escaneamento 3D alinha a nuvem de pontos capturada com o modelo CAD teórico (usando os Datums A e B) e gera um mapa de cores idêntico ao que você manipulou no nosso laboratório.'
-  }
-];
-
-const EXERCISES_MOD_8_DATA: Mod1Step[] = [
-  {
-    id: 1,
-    title: '1. Simulando o Travamento',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: BoxSelect,
-    text: 'Vamos forçar o "Pior Caso". Mova o slider da Carcaça para o menor valor possível (49.80). Mova o Eixo e a Arruela para seus maiores valores (45.10 e 4.55).'
-  },
-  {
-    id: 2,
-    title: '2. Cálculo do Gap Máximo',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'O pior caso de folga mínima já vimos que é 0.15 mm. Se a fábrica produzir no outro extremo (Carcaça Máxima, Eixo Mínimo, Arruela Mínima), qual será o "Pior Caso de Folga Máxima" calculada?',
-    options: ['0.85 mm', '1.00 mm'],
-    correctIndex: 0,
-    comment: 'Correto! O Gap Máximo ocorre quando o alojamento é o maior possível (50.20) e as peças internas são as menores (44.90 + 4.45 = 49.35). Portanto, 50.20 - 49.35 = 0.85 mm de folga máxima.'
-  },
-  {
-    id: 3,
-    title: '3. A Realidade do Bônus Geométrico',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Crosshair,
-    scenario: 'Se um dos componentes internos tivesse uma tolerância de Perpendicularidade com um modificador Ⓜ (MMC), como isso afetaria nossa cadeia de acúmulo (Stack-Up)?',
-    options: ['Não afeta em nada', 'Adiciona o erro de inclinação e o bônus à folga'],
-    correctIndex: 1,
-    comment: 'Resposta de Especialista! O Stack-Up real não é apenas linear (1D). Se a arruela estiver inclinada (fora de perpendicularidade), ela ocupará um \'espaço extra\' no eixo Z, reduzindo o Gap de montagem. O GD&T deve entrar no cálculo!'
-  },
-  {
-    id: 4,
-    title: '4. Otimização de Custos (RSS)',
-    level: 'Prática 3D',
-    type: 'interactive',
-    icon: Cpu,
-    text: 'Mantenha os sliders perto do valor nominal. O método Estatístico (RSS) afirma que a variação total provável não é a soma simples, mas sim a raiz quadrada da soma dos quadrados das tolerâncias. Isso nos diz que podemos baratear as peças!'
-  },
-  {
-    id: 5,
-    title: '5. Decisão Final do Projeto',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'Sabendo que o uso do RSS relaxou a exigência, o gerente de produção perguntou: "Se usarmos a análise estatística em vez do Pior Caso, corremos algum risco?"',
-    options: ['Sim, haverá um pequeno % de rejeição de montagens', 'Não, a garantia de montagem continua 100%'],
-    correctIndex: 0,
-    comment: 'Perfeito! O método RSS relaxa as tolerâncias individuais da usinagem assumindo que as peças seguirão uma curva normal (Sino de Gauss). Assim, você aceita que talvez 0,3% (em 3 Sigma) ou 0,0003% (em 6 Sigma) das montagens travem na linha, mas a economia de usinagem compensa o descarte.'
-  }
-];
-
-const EXERCISES_MOD_9_DATA: (Mod1Step & { categoryKey: 'normas' | 'datums' | 'forma' | 'localizacao' | 'orientacao' })[] = [
-  {
-    id: 1,
-    categoryKey: 'normas',
-    title: '1. Normas e Regras (ASME vs ISO)',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Target,
-    scenario: 'Na norma ASME Y14.5, qual regra dita que uma característica de tamanho não deve violar seu limite de forma perfeita na Condição de Máximo Material (MMC)?',
-    options: ['Princípio da Independência (ISO 8015)', 'Regra Nº 1 (Princípio do Envelope)'],
-    correctIndex: 1,
-    comment: 'Correto! A ASME Y14.5 utiliza a Regra nº 1 (Envelope) por padrão, forçando o controle de forma dentro da tolerância dimensional. Já o sistema ISO GPS utiliza o Princípio da Independência por padrão.'
-  },
-  {
-    id: 2,
-    categoryKey: 'datums',
-    title: '2. Datums e Graus de Liberdade',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Crosshair,
-    scenario: 'Ao fixar esta peça na mesa de desempeno para estabelecer o Datum Primário plano, quantos graus de liberdade fundamentais (de um total de 6) nós restringimos?',
-    options: ['3 Graus (1 translação e 2 rotações)', '6 Graus (Fixação total)'],
-    correctIndex: 0,
-    comment: 'Exato! Um plano de datum primário (regra 3-2-1) restringe três graus de liberdade: o movimento linear contra o plano e as duas rotações ao longo desse plano.'
-  },
-  {
-    id: 3,
-    categoryKey: 'forma',
-    title: '3. Forma vs Orientação',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: BoxSelect,
-    scenario: 'O projetista quer garantir que esta face seja perfeitamente plana E fique a exatos 90° em relação à base. Qual quadro de controle ele deve usar?',
-    options: ['Planeza [ ⏥ | 0.05 ]', 'Perpendicularidade [ ⟂ | 0.05 | A ]'],
-    correctIndex: 1,
-    comment: 'Perfeito! A Perpendicularidade é um controle de Orientação que exige um Datum (A). Ela garante o ângulo de 90° e, obrigatoriamente, já controla a Planeza (Forma) da superfície de brinde!'
-  },
-  {
-    id: 4,
-    categoryKey: 'localizacao',
-    title: '4. Localização e Condição Virtual',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Cpu,
-    scenario: 'Os furos têm limite de diâmetro de 10.00 mm a 10.50 mm. A Posição Real exige [ ⌖ | ⌀ 0.20 Ⓜ | A | B | C ]. Qual é o diâmetro do pino de um calibrador funcional para inspecionar esses furos?',
-    options: ['10.20 mm', '9.80 mm'],
-    correctIndex: 1,
-    comment: 'Resposta de Especialista! O pino calibrador deve ter o tamanho da Condição Virtual (Pior Caso): o diâmetro em MMC (o menor furo, 10.00) menos a tolerância geométrica (0.20), resultando em pinos exatos de 9.80 mm.'
-  },
-  {
-    id: 5,
-    categoryKey: 'orientacao',
-    title: '5. Batimento (Runout)',
-    level: 'Quiz',
-    type: 'quiz',
-    icon: Award,
-    scenario: 'Para controlar o Batimento Total deste alojamento rotativo em relação a um eixo, é permitido adicionar um modificador de Máximo Material Ⓜ ao quadro?',
-    options: ['Sim, pois o furo tem diâmetro', 'Não, é proibido na norma'],
-    correctIndex: 1,
-    comment: 'Isso aí! Independentemente de ser um furo ou eixo, os controles de Batimento (Circular e Total) NÃO permitem modificadores de material. Eles operam sempre na condição independente do tamanho (RFS).'
-  }
-];
+import { CURRICULUM_MODULES } from '../../data/curriculumData';
+import { CheckCircle2, ChevronRight, Calculator, Crosshair, HelpCircle, Award, Check, X } from 'lucide-react';
 
 const ExerciseEngine: React.FC = () => {
   const { 
-    activeModule, activeExercise, setActiveExercise, 
+    activeModule, 
+    activeExercise, setActiveExercise, 
     exerciseProgress, setExerciseProgress,
-    holeDiameter, deviationX, deviationY,
-    warpTwist, formType,
-    cylinderFormType, errorTaper,
-    tiltZ, warpForm,
-    angularError, selectedDatumInFCF,
-    eccentricity, circularityError,
-    peakDeviation, valleySink,
-    lengthHousing, lengthShaft, lengthWasher,
-    addScore
+    sliderValues
   } = useGdtStore();
 
-  const [ex2Input, setEx2Input] = useState('');
-  const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
+  const currentModule = CURRICULUM_MODULES[activeModule] || CURRICULUM_MODULES[0];
+  const exercises = currentModule.exercises;
 
-  if (activeModule === 0) {
-    return <OnboardingTour />;
-  }
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
+  const [calcInputs, setCalcInputs] = useState<Record<string, string>>({});
+  const [calcResults, setCalcResults] = useState<Record<string, boolean>>({});
 
-  // Helper renderer for hybrid steps (Modules 1 to 9)
-  const renderHybridModule = (title: string, data: Mod1Step[], modId: number) => {
-    const handleSelectOption = (exId: number, optIdx: number, correctIdx: number) => {
-      setUserAnswers((prev) => ({ ...prev, [exId]: optIdx }));
-      const isCorrect = optIdx === correctIdx;
-      setExerciseProgress(exId, isCorrect);
+  // Evaluate interactive 3D actions safely inside useEffect
+  useEffect(() => {
+    exercises.forEach((ex) => {
+      if (ex.type === 'interactive_3d' && ex.interactiveAction?.requiredSliderKey) {
+        const key = ex.interactiveAction.requiredSliderKey;
+        const val = sliderValues[key];
+        const min = ex.interactiveAction.targetValueMin ?? -Infinity;
+        const max = ex.interactiveAction.targetValueMax ?? Infinity;
 
-      // Module 9 Quiz score tracking
-      if (modId === 9 && isCorrect) {
-        const item = EXERCISES_MOD_9_DATA.find((q) => q.id === exId);
-        if (item) {
-          addScore(item.categoryKey);
+        if (val !== undefined && val >= min && val <= max) {
+          if (!exerciseProgress[ex.stepNumber]) {
+            setExerciseProgress(ex.stepNumber, true);
+          }
         }
       }
-    };
+    });
+  }, [sliderValues, activeModule, exercises, exerciseProgress, setExerciseProgress]);
 
-    return (
-      <div className="flex flex-col gap-3">
-        <div className="flex justify-between items-center mb-1">
-          <h3 className="font-semibold text-slate-800 text-base">{title}</h3>
-          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-            Passo {activeExercise} de 5
-          </span>
+  const handleSelectQuizOption = (exId: string, stepNum: number, optIndex: number, correctIndex?: number) => {
+    setQuizAnswers((prev) => ({ ...prev, [exId]: optIndex }));
+    const isCorrect = optIndex === correctIndex;
+    setExerciseProgress(stepNum, isCorrect);
+  };
+
+  const handleVerifyCalculation = (exId: string, stepNum: number, correctVal?: number, tol: number = 0.001) => {
+    const rawInput = calcInputs[exId]?.replace(',', '.') || '';
+    const numericVal = parseFloat(rawInput);
+
+    if (!isNaN(numericVal) && correctVal !== undefined) {
+      const isCorrect = Math.abs(numericVal - correctVal) <= tol;
+      setCalcResults((prev) => ({ ...prev, [exId]: isCorrect }));
+      setExerciseProgress(stepNum, isCorrect);
+    }
+  };
+
+  const getDifficultyBadge = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Fácil':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'Intermediário':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Difícil':
+        return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'Especialista':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      default:
+        return 'bg-slate-100 text-slate-800 border-slate-200';
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-center mb-1">
+        <div>
+          <h3 className="font-bold text-slate-800 text-base">
+            Motor de Exercícios Dinâmicos
+          </h3>
+          <p className="text-xs text-slate-500">
+            Capítulo {currentModule.chapterNumber} • {currentModule.title}
+          </p>
         </div>
+        <span className="text-xs font-extrabold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200 shadow-sm">
+          Passo {activeExercise} de {exercises.length}
+        </span>
+      </div>
 
-        {data.map((ex) => {
-          const isActive = activeExercise === ex.id;
-          const isPast = activeExercise > ex.id || exerciseProgress[ex.id] !== undefined;
-          const selectedAnswer = userAnswers[ex.id];
-          const hasAnswered = selectedAnswer !== undefined;
+      <div className="space-y-3">
+        {exercises.map((ex) => {
+          const isActive = activeExercise === ex.stepNumber;
+          const isDone = exerciseProgress[ex.stepNumber] === true;
 
           return (
-            <div key={ex.id} className="flex flex-col">
-              {/* Header / Stepper Accordion */}
+            <div 
+              key={ex.id} 
+              className={`rounded-2xl border transition-all overflow-hidden ${
+                isActive 
+                  ? 'border-blue-500 ring-2 ring-blue-100 bg-white shadow-md' 
+                  : isDone 
+                    ? 'border-emerald-200 bg-emerald-50/20' 
+                    : 'border-slate-200 bg-white opacity-85 hover:opacity-100'
+              }`}
+            >
+              {/* Step Accordion Header */}
               <div 
-                onClick={() => {
-                  if (isPast || isActive || ex.id <= activeExercise) {
-                    setActiveExercise(ex.id);
-                  }
-                }}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex gap-3 items-center ${
-                  isActive ? 'border-blue-500 bg-blue-50/50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}
+                onClick={() => setActiveExercise(ex.stepNumber)}
+                className="p-3.5 flex items-center justify-between cursor-pointer select-none border-b border-slate-100 bg-slate-50/60"
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                  exerciseProgress[ex.id] === true 
-                    ? 'bg-emerald-500 text-white' 
-                    : exerciseProgress[ex.id] === false 
-                      ? 'bg-rose-500 text-white' 
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-inner ${
+                    isDone 
+                      ? 'bg-emerald-600 text-white' 
                       : isActive 
                         ? 'bg-blue-600 text-white' 
-                        : 'bg-slate-100 text-slate-400'
-                }`}>
-                  {exerciseProgress[ex.id] === true ? (
-                    <CheckCircle2 size={16} />
-                  ) : exerciseProgress[ex.id] === false ? (
-                    <ShieldAlert size={16} />
-                  ) : (
-                    <ex.icon size={16} />
-                  )}
-                </div>
-
-                <div className="flex-1 flex justify-between items-center">
-                  <h4 className={`text-sm font-semibold ${isActive ? 'text-blue-900' : 'text-slate-700'}`}>
-                    {ex.title}
-                  </h4>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                    ex.type === 'interactive' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'
+                        : 'bg-slate-200 text-slate-700'
                   }`}>
-                    {ex.level}
-                  </span>
+                    {isDone ? <Check size={14} /> : ex.stepNumber}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-xs">
+                      {ex.title}
+                    </h4>
+                    <span className="text-[10px] text-slate-400 font-medium capitalize">
+                      {ex.type.replace('_', ' ')}
+                    </span>
+                  </div>
                 </div>
 
-                {isActive && <ChevronRight size={18} className="text-blue-600 shrink-0" />}
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${getDifficultyBadge(ex.difficulty)}`}>
+                  {ex.difficulty}
+                </span>
               </div>
 
-              {/* Active Exercise UI */}
+              {/* Step Body (Expanded when active) */}
               {isActive && (
-                <div className="mt-2 p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 space-y-3.5 shadow-sm">
-                  {/* Step 1, 2 & 3: Interactive 3D Challenges */}
-                  {ex.type === 'interactive' && (
-                    <>
-                      <p className="text-slate-700 leading-relaxed text-sm font-medium">
-                        {ex.text}
-                      </p>
+                <div className="p-4 space-y-4 animate-fadeIn">
+                  {/* Instruction */}
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                    {ex.instruction}
+                  </p>
 
-                      {/* Custom Input for Module 5 Step 2 */}
-                      {modId === 5 && ex.id === 2 && (
-                        <div className="space-y-3 pt-1">
-                          {!exerciseProgress[2] && (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                step="0.01"
-                                placeholder="Ex: 0.55"
-                                value={ex2Input}
-                                onChange={(e) => setEx2Input(e.target.value)}
-                                className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                              />
-                              <button
-                                onClick={() => {
-                                  const val = parseFloat(ex2Input);
-                                  if (val === 0.55 || val === 0.550) {
-                                    setExerciseProgress(2, true);
-                                  } else {
-                                    setExerciseProgress(2, false);
-                                  }
-                                }}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition-colors shadow-sm"
-                              >
-                                Verificar
-                              </button>
-                            </div>
-                          )}
-
-                          {exerciseProgress[2] === false && (
-                            <p className="text-xs text-rose-600 font-bold">
-                              Incorreto. Tente novamente! Dica: Base (0.20) + Bônus (10.35 - 10.00 = 0.35) = 0.55 mm.
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Custom Button for Module 8 Step 4 */}
-                      {modId === 8 && ex.id === 4 && !exerciseProgress[4] && (
-                        <div className="pt-2">
-                          <button
-                            onClick={() => setExerciseProgress(4, true)}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition-colors shadow-sm flex items-center justify-center gap-2"
-                          >
-                            <span>⚡</span> Aplicar Cálculo RSS (Root Sum Square)
-                          </button>
-                        </div>
-                      )}
-
-                      {exerciseProgress[ex.id] ? (
-                        <div className="p-3 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 space-y-2">
-                          <div className="flex items-center gap-1.5 font-bold text-emerald-700 text-xs">
-                            <CheckCircle2 size={16} /> Interatividade Concluída com Sucesso!
-                          </div>
-                          <p className="text-xs text-emerald-900 font-normal">
-                            {modId === 1 
-                              ? (ex.id === 1 
-                                  ? 'A fatia central Z=0 permaneceu dentro da zona, aprovando a peça na Retilineidade.'
-                                  : 'O envelope tridimensional detectou a torção dos cantos e reprovou a peça na Planeza.')
-                              : modId === 2
-                                ? (ex.id === 1
-                                    ? 'A conicidade vira um cone, mas cada fatia circular 2D permanece aprovada.'
-                                    : 'O envelope 3D de Cilindricidade detectou a conicidade e reprovou a peça!')
-                                : modId === 3
-                                  ? 'A inclinação fez a face cruzar a zona verde paralela ao Datum A, acusando a reprovação com sucesso!'
-                                  : modId === 4
-                                    ? 'A inclinação angular fez a aba vertical cruzar os planos de 90°, acusando a reprovação com sucesso!'
-                                    : modId === 5
-                                      ? (ex.id === 1
-                                          ? 'Excelente! Você selecionou o Datum A, travando o referencial primário.'
-                                          : ex.id === 2
-                                            ? 'Cálculo Perfeito! A tolerância total saltou para 0.55 mm graças ao bônus.'
-                                            : 'A peça reprovou! O desvio posicional radial ultrapassou a zona bônus de 0.55 mm.')
-                                      : modId === 6
-                                        ? 'A excentricidade deslocou o centro de rotação, fazendo o relógio comparador oscilar além do limite de 0.05 mm!'
-                                        : modId === 7
-                                          ? 'O pico ultrapassou a casca verde de 0.20 mm, ativando o mapa de calor vermelho e reprovando a peça!'
-                                          : (ex.id === 1
-                                              ? 'O Gap caiu para 0.15 mm no pior caso de fábrica, acusando o alerta de travamento!'
-                                              : 'O modelo RSS estatístico foi aplicado! As tolerâncias foram relaxadas com segurança.')
-                            }
-                          </p>
-
-                          {/* Correção Comentada for Module 5 Step 2 */}
-                          {modId === 5 && ex.id === 2 && (
-                            <div className="mt-2 p-3 bg-slate-100 rounded-lg text-xs border-l-4 border-blue-500 space-y-1">
-                              <div className="font-bold text-blue-900 flex items-center gap-1.5 text-xs">
-                                <span>💡</span> Correção Comentada:
-                              </div>
-                              <p className="text-slate-700 leading-relaxed font-normal">
-                                {ex.comment}
-                              </p>
-                            </div>
-                          )}
-
-                          <button
-                            onClick={() => setActiveExercise(ex.id + 1)}
-                            className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
-                          >
-                            Avançar para o próximo desafio <ChevronRight size={14} />
-                          </button>
-                        </div>
-                      ) : (
-                        ex.id !== 2 && (
-                          <div className="p-3 bg-amber-50 text-amber-700 font-medium rounded-lg border border-amber-200 animate-pulse text-center text-xs">
-                            {modId === 1 
-                              ? (ex.id === 1 
-                                  ? 'Aguardando: Selecione "Retilineidade (2D)" e aumente a Torção da Face (>= 0.08mm)...'
-                                  : 'Aguardando: Alterne para "Planeza (3D)" no topo da Seção 1 à direita...')
-                              : modId === 2
-                                ? (ex.id === 1
-                                    ? 'Aguardando: Ative "Circularidade (2D)" e aumente o Erro de Conicidade (>= 0.08mm)...'
-                                    : 'Aguardando: Alterne para "Cilindricidade (3D)" no topo da Seção 1 à direita...')
-                                : modId === 3
-                                  ? 'Aguardando: Ajuste o slider "Inclinação da Face" para >= 0.08 mm...'
-                                  : modId === 4
-                                    ? 'Aguardando: Ajuste o slider "Erro Angular da Face" para +0.06 mm ou mais...'
-                                    : modId === 5
-                                      ? (ex.id === 1
-                                          ? 'Aguardando: Clique na célula [ A ] do Feature Control Frame no painel à direita...'
-                                          : 'Aguardando: Mova os sliders de desvio X e Y até a badge mudar para REPROVADO...')
-                                      : modId === 6
-                                        ? 'Aguardando: Ajuste o slider "Erro de Excentricidade" para 0.03 mm ou mais...'
-                                        : modId === 7
-                                          ? 'Aguardando: Ajuste o slider "Desvio Máximo de Pico" para +0.15 mm ou mais...'
-                                          : (ex.id === 1
-                                              ? 'Aguardando: Mova L1=49.80, L2=45.10 e L3=4.55 para simular o Pior Caso...'
-                                              : 'Aguardando: Clique no botão "Aplicar Cálculo RSS" acima...')
-                            }
-                          </div>
-                        )
-                      )}
-                    </>
+                  {/* Scenario Box if present */}
+                  {ex.scenario && (
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-700 italic space-y-1">
+                      <span className="font-bold text-slate-900 not-italic block flex items-center gap-1">
+                        <HelpCircle size={14} className="text-blue-600" /> Cenário de Projeto:
+                      </span>
+                      "{ex.scenario}"
+                    </div>
                   )}
 
-                  {/* Step 4 & 5: Quizzes with Commented Feedback */}
-                  {ex.type === 'quiz' && (
-                    <>
-                      <p className="text-slate-700 leading-relaxed text-sm font-medium">
-                        {ex.scenario}
-                      </p>
+                  {/* Type 1: QUIZ CONCEPTUAL */}
+                  {ex.type === 'quiz_conceptual' && ex.options && (
+                    <div className="space-y-2 pt-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Selecione a Alternativa Correta:
+                      </span>
+                      <div className="space-y-2">
+                        {ex.options.map((opt, optIdx) => {
+                          const selectedOpt = quizAnswers[ex.id];
+                          const hasSelected = selectedOpt !== undefined;
+                          const isThisSelected = selectedOpt === optIdx;
+                          const isThisCorrect = optIdx === ex.correctOptionIndex;
 
-                      {/* Option Buttons */}
-                      <div className="flex flex-col gap-2 pt-1">
-                        {ex.options?.map((optText, optIdx) => {
-                          const isSelected = selectedAnswer === optIdx;
-                          const isCorrect = optIdx === ex.correctIndex;
-
-                          let btnStyle = "bg-white text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40";
-                          if (hasAnswered) {
-                            if (isSelected) {
-                              btnStyle = isCorrect 
-                                ? "bg-emerald-600 text-white border-emerald-700 font-bold shadow-sm" 
-                                : "bg-rose-600 text-white border-rose-700 font-bold shadow-sm";
-                            } else if (isCorrect) {
-                              btnStyle = "bg-emerald-100 text-emerald-800 border-emerald-300 font-bold";
+                          let btnStyle = 'border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100';
+                          if (hasSelected) {
+                            if (isThisCorrect) {
+                              btnStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold';
+                            } else if (isThisSelected) {
+                              btnStyle = 'border-rose-400 bg-rose-50 text-rose-900 font-bold';
                             } else {
-                              btnStyle = "bg-slate-100 text-slate-400 border-slate-200 opacity-50 cursor-not-allowed";
+                              btnStyle = 'border-slate-200 bg-slate-50 text-slate-400 opacity-60';
                             }
                           }
 
                           return (
                             <button
                               key={optIdx}
-                              disabled={hasAnswered}
-                              onClick={() => handleSelectOption(ex.id, optIdx, ex.correctIndex!)}
-                              className={`w-full py-2.5 px-3 rounded-lg border text-xs font-semibold transition-all text-left flex items-center justify-between ${btnStyle}`}
+                              onClick={() => handleSelectQuizOption(ex.id, ex.stepNumber, optIdx, ex.correctOptionIndex)}
+                              className={`w-full text-left p-3 rounded-xl border text-xs transition-all flex items-start gap-2.5 ${btnStyle}`}
                             >
-                              <span>{optText}</span>
-                              {hasAnswered && isSelected && (
-                                <span className="text-[11px] uppercase tracking-wider font-bold">
-                                  {isCorrect ? '✓ Correto' : '✕ Errado'}
-                                </span>
-                              )}
+                              <span className="w-5 h-5 rounded-full border border-current flex items-center justify-center shrink-0 font-bold text-[10px] mt-0.5">
+                                {String.fromCharCode(65 + optIdx)}
+                              </span>
+                              <span className="leading-snug">{opt}</span>
                             </button>
                           );
                         })}
                       </div>
+                    </div>
+                  )}
 
-                      {/* Correção Comentada */}
-                      {hasAnswered && (
-                        <div className="mt-4 p-3 bg-slate-100 rounded-lg text-xs border-l-4 border-blue-500 space-y-1 animate-fadeIn">
-                          <div className="font-bold text-blue-900 flex items-center gap-1.5 text-xs">
-                            <span>💡</span> Correção Comentada:
-                          </div>
-                          <p className="text-slate-700 leading-relaxed">
-                            {ex.comment}
-                          </p>
+                  {/* Type 2: CALCULATION */}
+                  {ex.type === 'calculation' && (
+                    <div className="space-y-3 pt-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Digite seu Cálculo Numérico:
+                      </span>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Ex: 0.034"
+                          value={calcInputs[ex.id] || ''}
+                          onChange={(e) => setCalcInputs((prev) => ({ ...prev, [ex.id]: e.target.value }))}
+                          className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                        <button
+                          onClick={() => handleVerifyCalculation(ex.id, ex.stepNumber, ex.correctAnswerNumeric, ex.numericTolerance)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors shadow-sm flex items-center gap-1.5"
+                        >
+                          <Calculator size={14} /> Verificar
+                        </button>
+                      </div>
+
+                      {calcResults[ex.id] !== undefined && (
+                        <div className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${
+                          calcResults[ex.id] 
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                            : 'bg-rose-50 border-rose-200 text-rose-800'
+                        }`}>
+                          {calcResults[ex.id] ? <CheckCircle2 size={16} /> : <X size={16} />}
+                          <span>
+                            {calcResults[ex.id] 
+                              ? 'Cálculo Numérico Perfeito!' 
+                              : `Valor Incorreto. Resposta esperada: ${ex.correctAnswerNumeric}`}
+                          </span>
                         </div>
                       )}
+                    </div>
+                  )}
 
-                      {/* Advance Button */}
-                      {hasAnswered && (
-                        <div className="pt-2">
-                          {ex.id < 5 ? (
-                            <button
-                              onClick={() => {
-                                setActiveExercise(ex.id + 1);
-                              }}
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
-                            >
-                              Avançar para o próximo desafio <ChevronRight size={14} />
-                            </button>
-                          ) : (
-                            <div className="p-3 bg-emerald-50 text-emerald-800 font-bold rounded-lg border border-emerald-200 text-center text-xs flex items-center justify-center gap-2">
-                              <CheckCircle2 size={16} /> Parabéns! Você concluiu todos os exercícios do Módulo {modId}!
-                            </div>
-                          )}
+                  {/* Type 3: INTERACTIVE 3D */}
+                  {ex.type === 'interactive_3d' && (
+                    <div className="bg-blue-50/60 p-3.5 rounded-xl border border-blue-200 text-xs text-blue-900 space-y-2">
+                      <span className="font-bold block flex items-center gap-1.5 text-blue-900">
+                        <Crosshair size={16} className="text-blue-600" /> Ação Requerida no Painel 3D:
+                      </span>
+                      <p className="text-blue-800 leading-relaxed">
+                        Ajuste os sliders de metrologia à direita para testar os parâmetros exigidos. A validação ocorrerá automaticamente em tempo real!
+                      </p>
+                      {isDone && (
+                        <div className="bg-emerald-100 text-emerald-900 font-bold p-2 rounded-lg border border-emerald-300 flex items-center gap-2">
+                          <CheckCircle2 size={16} className="text-emerald-700" />
+                          <span>Parâmetros de Usinagem 3D Validados!</span>
                         </div>
                       )}
-                    </>
+                    </div>
+                  )}
+
+                  {/* REVELAÇÃO DA EXPLICAÇÃO DETALHADA DO LIVRO (commentedSolution) */}
+                  {(isDone || quizAnswers[ex.id] !== undefined || calcResults[ex.id] !== undefined) && (
+                    <div className="bg-slate-900 text-slate-100 p-4 rounded-xl space-y-2 border border-slate-800 animate-fadeIn shadow-lg">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 block flex items-center gap-1.5">
+                        <Award size={14} /> Resolução Comentada • Gene R. Cogorno:
+                      </span>
+                      <p className="text-xs leading-relaxed text-slate-300 font-normal">
+                        {ex.commentedSolution}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Button for Next Exercise */}
+                  {ex.stepNumber < exercises.length && (
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        onClick={() => setActiveExercise(ex.stepNumber + 1)}
+                        className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow"
+                      >
+                        Próximo Passo <ChevronRight size={14} />
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
@@ -833,85 +275,8 @@ const ExerciseEngine: React.FC = () => {
           );
         })}
       </div>
-    );
-  };
-
-  // Safely evaluate interactive progress inside useEffect (preventing React re-render loops)
-  useEffect(() => {
-    if (activeModule === 1) {
-      if (activeExercise === 1 && formType === 'retilineidade' && warpTwist >= 0.08 && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-      if (activeExercise === 2 && formType === 'planeza' && warpTwist >= 0.08 && !exerciseProgress[2]) {
-        setExerciseProgress(2, true);
-      }
-    }
-    if (activeModule === 2) {
-      if (activeExercise === 1 && cylinderFormType === 'circularidade' && errorTaper >= 0.08 && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-      if (activeExercise === 2 && cylinderFormType === 'cilindricidade' && errorTaper >= 0.08 && !exerciseProgress[2]) {
-        setExerciseProgress(2, true);
-      }
-    }
-    if (activeModule === 3) {
-      if (activeExercise === 1 && tiltZ >= 0.08 && (tiltZ + warpForm) > 0.05 && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-    }
-    if (activeModule === 4) {
-      if (activeExercise === 1 && Math.abs(angularError) >= 0.06 && (Math.abs(angularError) + warpForm) > 0.05 && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-    }
-    if (activeModule === 5) {
-      if (activeExercise === 1 && selectedDatumInFCF === 'A' && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-      const measuredDev = 2 * Math.sqrt(deviationX ** 2 + deviationY ** 2);
-      const bonus = Math.max(0, holeDiameter - 10.00);
-      const totalTol = 0.200 + bonus;
-      if (activeExercise === 3 && measuredDev > totalTol && !exerciseProgress[3]) {
-        setExerciseProgress(3, true);
-      }
-    }
-    if (activeModule === 6) {
-      const runoutDev = (eccentricity * 2) + circularityError;
-      if (activeExercise === 1 && eccentricity >= 0.03 && runoutDev > 0.05 && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-    }
-    if (activeModule === 7) {
-      const profileDev = Math.abs(peakDeviation) + Math.abs(valleySink);
-      if (activeExercise === 1 && peakDeviation >= 0.15 && profileDev > 0.20 && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-    }
-    if (activeModule === 8) {
-      const stackGap = lengthHousing - (lengthShaft + lengthWasher);
-      if (activeExercise === 1 && lengthHousing <= 49.80 && lengthShaft >= 45.10 && lengthWasher >= 4.55 && stackGap <= 0.15 && !exerciseProgress[1]) {
-        setExerciseProgress(1, true);
-      }
-    }
-  }, [
-    activeModule, activeExercise, exerciseProgress, setExerciseProgress,
-    formType, warpTwist, cylinderFormType, errorTaper, tiltZ, warpForm,
-    angularError, selectedDatumInFCF, deviationX, deviationY, holeDiameter,
-    eccentricity, circularityError, peakDeviation, valleySink, lengthHousing,
-    lengthShaft, lengthWasher
-  ]);
-
-  if (activeModule === 1) return renderHybridModule('Exercícios: Módulo 1 (Planeza / Retilineidade)', EXERCISES_MOD_1_DATA, 1);
-  if (activeModule === 2) return renderHybridModule('Exercícios: Módulo 2 (Circularidade / Cilindricidade)', EXERCISES_MOD_2_DATA, 2);
-  if (activeModule === 3) return renderHybridModule('Exercícios: Módulo 3 (Paralelismo)', EXERCISES_MOD_3_DATA, 3);
-  if (activeModule === 4) return renderHybridModule('Exercícios: Módulo 4 (Perpendicularidade)', EXERCISES_MOD_4_DATA, 4);
-  if (activeModule === 5) return renderHybridModule('Exercícios: Módulo 5 (Posição Real)', EXERCISES_MOD_5_DATA, 5);
-  if (activeModule === 6) return renderHybridModule('Exercícios: Módulo 6 (Batimento Circular)', EXERCISES_MOD_6_DATA, 6);
-  if (activeModule === 7) return renderHybridModule('Exercícios: Módulo 7 (Perfil de Superfície)', EXERCISES_MOD_7_DATA, 7);
-  if (activeModule === 8) return renderHybridModule('Exercícios: Módulo 8 (Stack-Up de Tolerâncias)', EXERCISES_MOD_8_DATA, 8);
-  if (activeModule === 9) return renderHybridModule('Simulado de Avaliação Geral', EXERCISES_MOD_9_DATA, 9);
-
-  return null;
+    </div>
+  );
 };
 
 export default ExerciseEngine;
