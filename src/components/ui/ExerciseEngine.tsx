@@ -21,15 +21,26 @@ const ExerciseEngine: React.FC = () => {
   // Evaluate interactive 3D actions safely inside useEffect
   useEffect(() => {
     exercises.forEach((ex) => {
-      if (ex.type === 'interactive_3d' && ex.interactiveAction?.requiredSliderKey) {
-        const key = ex.interactiveAction.requiredSliderKey;
-        const val = sliderValues[key];
-        const min = ex.interactiveAction.targetValueMin ?? -Infinity;
-        const max = ex.interactiveAction.targetValueMax ?? Infinity;
+      if (ex.type === 'interactive_3d') {
+        if (ex.id === 'ex-1-2') {
+          // Chapter 1 Step 2: Validate ΔX and ΔY near +0.006
+          const devX = sliderValues.deviationX ?? 0;
+          const devY = sliderValues.deviationY ?? 0;
+          if (devX >= 0.0055 && devY >= 0.0055) {
+            if (!exerciseProgress[ex.stepNumber]) {
+              setExerciseProgress(ex.stepNumber, true);
+            }
+          }
+        } else if (ex.interactiveAction?.requiredSliderKey) {
+          const key = ex.interactiveAction.requiredSliderKey;
+          const val = sliderValues[key];
+          const min = ex.interactiveAction.targetValueMin ?? -Infinity;
+          const max = ex.interactiveAction.targetValueMax ?? Infinity;
 
-        if (val !== undefined && val >= min && val <= max) {
-          if (!exerciseProgress[ex.stepNumber]) {
-            setExerciseProgress(ex.stepNumber, true);
+          if (val !== undefined && val >= min && val <= max) {
+            if (!exerciseProgress[ex.stepNumber]) {
+              setExerciseProgress(ex.stepNumber, true);
+            }
           }
         }
       }

@@ -47,6 +47,7 @@ interface GdtState {
   setOnboardingStep: (val: number) => void;
   hasInteractedWithCamera: boolean;
   setHasInteractedWithCamera: (val: boolean) => void;
+
   // Module 1 Flatness vs Straightness State
   formType: 'planeza' | 'retilineidade';
   setFormType: (val: 'planeza' | 'retilineidade') => void;
@@ -93,6 +94,10 @@ interface GdtState {
   lengthWasher: number;
   setLengthWasher: (val: number) => void;
 
+  // Dynamic Concept Index for Interactive Theory 3D Views
+  activeConceptIndex: number;
+  setActiveConceptIndex: (idx: number) => void;
+
   // Dynamic Slider State for Curriculum Modules
   sliderValues: Record<string, number>;
   setSliderValue: (key: string, value: number) => void;
@@ -110,10 +115,11 @@ interface GdtState {
 }
 
 export const useGdtStore = create<GdtState>((set) => ({
-  activeModule: 1, // Defaulting to Module 1: Tolerâncias de Forma (Planeza)
+  activeModule: 0, // Defaulting to Module 1: Introdução ao GD&T
   setActiveModule: (m) => set({ 
     activeModule: m, 
     activeExercise: 1, 
+    activeConceptIndex: 0,
     onboardingStep: 1,
     exerciseProgress: {},
     selectedDatumInFCF: null,
@@ -148,6 +154,24 @@ export const useGdtStore = create<GdtState>((set) => ({
     }
   }),
   
+  activeConceptIndex: 0,
+  setActiveConceptIndex: (idx) => set((state) => {
+    let newSliders = { ...state.sliderValues };
+    if (idx === 1) {
+      newSliders.deviationX = 0.006;
+      newSliders.deviationY = 0.006;
+    } else if (idx === 0) {
+      newSliders.deviationX = 0.000;
+      newSliders.deviationY = 0.000;
+    }
+    return {
+      activeConceptIndex: idx,
+      sliderValues: newSliders,
+      deviationX: newSliders.deviationX ?? state.deviationX,
+      deviationY: newSliders.deviationY ?? state.deviationY
+    };
+  }),
+
   activeTab: 'exercicios',
   setActiveTab: (tab) => set({ activeTab: tab }),
 
@@ -164,7 +188,6 @@ export const useGdtStore = create<GdtState>((set) => ({
   },
   setSliderValue: (key, val) => set((state) => ({
     sliderValues: { ...state.sliderValues, [key]: val },
-    // Also sync with legacy fields if matching key exists
     ...(key === 'holeDiameter' ? { holeDiameter: val } : {}),
     ...(key === 'deviationX' ? { deviationX: val } : {}),
     ...(key === 'deviationY' ? { deviationY: val } : {})
@@ -175,109 +198,104 @@ export const useGdtStore = create<GdtState>((set) => ({
 
   showDatums: true,
   setShowDatums: (val) => set({ showDatums: val }),
-  
   showToleranceZones: true,
   setShowToleranceZones: (val) => set({ showToleranceZones: val }),
-  
   showRealAxis: true,
   setShowRealAxis: (val) => set({ showRealAxis: val }),
 
-  holeDiameter: 10.0, // MMC
+  holeDiameter: 3.000,
   setHoleDiameter: (val) => set({ holeDiameter: val }),
-
   deviationX: 0,
   setDeviationX: (val) => set({ deviationX: val }),
-  
   deviationY: 0,
   setDeviationY: (val) => set({ deviationY: val }),
 
-  // Module 1 Form Type initial values
-  formType: 'planeza',
-  setFormType: (val) => set({ formType: val }),
-
-  warpConcave: 0,
-  setWarpConcave: (val) => set({ warpConcave: val }),
-  
-  warpTwist: 0,
-  setWarpTwist: (val) => set({ warpTwist: val }),
-
-  // Module 2 Form Type initial values
-  cylinderFormType: 'circularidade',
-  setCylinderFormType: (val) => set({ cylinderFormType: val }),
-
-  errorOvality: 0,
-  setErrorOvality: (val) => set({ errorOvality: val }),
-
-  errorTaper: 0,
-  setErrorTaper: (val) => set({ errorTaper: val }),
-
-  // Module 3 Parallelism initial values
-  tiltZ: 0,
-  setTiltZ: (val) => set({ tiltZ: val }),
-
-  warpForm: 0,
-  setWarpForm: (val) => set({ warpForm: val }),
-
-  // Module 4 Perpendicularity initial values
-  angularError: 0,
-  setAngularError: (val) => set({ angularError: val }),
-
-  // Module 6 Runout initial values
-  eccentricity: 0,
-  setEccentricity: (val) => set({ eccentricity: val }),
-
-  circularityError: 0,
-  setCircularityError: (val) => set({ circularityError: val }),
-
-  // Module 7 Profile initial values
-  peakDeviation: 0,
-  setPeakDeviation: (val) => set({ peakDeviation: val }),
-
-  valleySink: 0,
-  setValleySink: (val) => set({ valleySink: val }),
-
-  // Module 8 Assembly initial values
-  lengthHousing: 50.00,
-  setLengthHousing: (val) => set({ lengthHousing: val }),
-
-  lengthShaft: 45.00,
-  setLengthShaft: (val) => set({ lengthShaft: val }),
-
-  lengthWasher: 4.50,
-  setLengthWasher: (val) => set({ lengthWasher: val }),
-
-  // Module 9 Quiz Evaluation initial values
-  scores: { normas: 0, datums: 0, forma: 0, orientacao: 0, localizacao: 0 },
-  addScore: (category) => set((state) => ({
-    scores: { ...state.scores, [category]: state.scores[category] + 1 }
-  })),
-  resetScores: () => set({
-    scores: { normas: 0, datums: 0, forma: 0, orientacao: 0, localizacao: 0 }
-  }),
-
   selectedDatumInFCF: null,
-  setSelectedDatumInFCF: (val) => set({ selectedDatumInFCF: val }),
+  setSelectedDatumInFCF: (datum) => set({ selectedDatumInFCF: datum }),
 
   activeTooltip: null,
-  setActiveTooltip: (val) => set({ activeTooltip: val, highlightToleranceZones: val !== null }),
+  setActiveTooltip: (val) => set({ activeTooltip: val }),
 
   highlightToleranceZones: false,
   setHighlightToleranceZones: (val) => set({ highlightToleranceZones: val }),
 
   exerciseProgress: {},
-  setExerciseProgress: (ex, done) => set((state) => ({ 
-    exerciseProgress: { ...state.exerciseProgress, [ex]: done } 
+  setExerciseProgress: (ex, done) => set((state) => ({
+    exerciseProgress: { ...state.exerciseProgress, [ex]: done }
   })),
 
-  gaugeAnimationActive: false,
+  gaugeAnimationActive: true,
   setGaugeAnimationActive: (val) => set({ gaugeAnimationActive: val }),
 
-  showFabricationErrors: false,
+  // Module 0 Onboarding State
+  showFabricationErrors: true,
   setShowFabricationErrors: (val) => set({ showFabricationErrors: val }),
-  
   onboardingStep: 1,
   setOnboardingStep: (val) => set({ onboardingStep: val }),
-  
   hasInteractedWithCamera: false,
   setHasInteractedWithCamera: (val) => set({ hasInteractedWithCamera: val }),
+
+  // Module 1 Flatness vs Straightness State
+  formType: 'planeza',
+  setFormType: (val) => set({ formType: val }),
+  warpConcave: 0,
+  setWarpConcave: (val) => set({ warpConcave: val }),
+  warpTwist: 0,
+  setWarpTwist: (val) => set({ warpTwist: val }),
+
+  // Module 2 Circularity vs Cylindricity State
+  cylinderFormType: 'circularidade',
+  setCylinderFormType: (val) => set({ cylinderFormType: val }),
+  errorOvality: 0,
+  setErrorOvality: (val) => set({ errorOvality: val }),
+  errorTaper: 0,
+  setErrorTaper: (val) => set({ errorTaper: val }),
+
+  // Module 3 Orientation (Parallelism) State
+  tiltZ: 0,
+  setTiltZ: (val) => set({ tiltZ: val }),
+  warpForm: 0,
+  setWarpForm: (val) => set({ warpForm: val }),
+
+  // Module 4 Orientation (Perpendicularity) State
+  angularError: 0,
+  setAngularError: (val) => set({ angularError: val }),
+
+  // Module 6 Runout State
+  eccentricity: 0,
+  setEccentricity: (val) => set({ eccentricity: val }),
+  circularityError: 0,
+  setCircularityError: (val) => set({ circularityError: val }),
+
+  // Module 7 Profile State
+  peakDeviation: 0,
+  setPeakDeviation: (val) => set({ peakDeviation: val }),
+  valleySink: 0,
+  setValleySink: (val) => set({ valleySink: val }),
+
+  // Module 8 Assembly State
+  lengthHousing: 50.00,
+  setLengthHousing: (val) => set({ lengthHousing: val }),
+  lengthShaft: 45.00,
+  setLengthShaft: (val) => set({ lengthShaft: val }),
+  lengthWasher: 4.50,
+  setLengthWasher: (val) => set({ lengthWasher: val }),
+
+  // Module 9 Quiz Evaluation Scores State
+  scores: {
+    normas: 0,
+    datums: 0,
+    forma: 0,
+    orientacao: 0,
+    localizacao: 0
+  },
+  addScore: (category) => set((state) => ({
+    scores: {
+      ...state.scores,
+      [category]: state.scores[category] + 1
+    }
+  })),
+  resetScores: () => set({
+    scores: { normas: 0, datums: 0, forma: 0, orientacao: 0, localizacao: 0 }
+  })
 }));

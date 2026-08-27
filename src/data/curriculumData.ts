@@ -11,7 +11,6 @@ export const CURRICULUM_MODULES: ModuleData[] = [
     fcfSpecification: {
       symbol: '⌖',
       toleranceValue: '⌀ 0.014',
-      materialModifier: 'Ⓜ',
       primaryDatum: 'A',
       secondaryDatum: 'B',
       tertiaryDatum: 'C'
@@ -21,15 +20,15 @@ export const CURRICULUM_MODULES: ModuleData[] = [
       introduction: 'Durante a Segunda Guerra Mundial, peças sobressalentes eram fabricadas rigorosamente dentro das cotas de tolerância ±, mas não montavam em campo. O GD&T nasceu para eliminar ambiguidades, garantir 100% de intercambiabilidade funcional e reduzir custos industriais.',
       keyPoints: [
         {
-          topic: '1. Zona de Tolerância Cilíndrica (57% mais área)',
+          topic: '1. Zona Cilíndrica vs Quadrada (57% mais área)',
           description: 'O toleranciamento linear (±0.005) gera uma zona quadrada de 0.010 x 0.010. Na diagonal, a distância atinge 0.014. O GD&T substitui o quadrado por uma zona cilíndrica de ⌀ 0.014, concedendo 57% mais área útil de aprovação sem alterar o tamanho do parafuso de montagem.'
         },
         {
-          topic: '2. Condição de Máximo Material (MMC) e Tolerância Bônus',
-          description: 'No sistema linear, o tamanho do furo não altera sua tolerância de posição (RFS implícito). No GD&T, o modificador Ⓜ permite que, à medida que o furo é usinado maior que o seu limite mínimo (MMC), a folga ganha seja somada à tolerância de posição (Bônus).'
+          topic: '2. A Falha da Zona Coordenada (Cantos Diagonais)',
+          description: 'Quando a ferramenta desvia para os cantos diagonais (ex: X = +0.006, Y = +0.006), o sistema tradicional ± reprova a peça (0.006 > 0.005). Porém, a peça montaria perfeitamente porque a distância radial (0.0136) cabe dentro do círculo ⌀ 0.014. Peças boas eram descartadas!'
         },
         {
-          topic: '3. Datums Explícitos com Ordem de Precedência',
+          topic: '3. Datums Implícitos vs Explícitos',
           description: 'Cotagens em coordenadas possuem "Datums implícitos", forçando o operador e o inspetor a adivinhar qual face apoiar primeiro na mesa de medição. O GD&T exige a declaração exata da ordem de contato (Primário, Secundário, Terciário).'
         }
       ],
@@ -40,12 +39,12 @@ export const CURRICULUM_MODULES: ModuleData[] = [
           explanation: 'Para uma tolerância de ±0.005 (quadrado de 0.010 de lado), o diâmetro circunscrito é 0.01414, resultando em um ganho de 57% na área permissível de fabricação.'
         },
         {
-          name: 'Tolerância Bônus em MMC',
-          formula: 'Bonus = \\text{Diâmetro Real} - \\text{Diâmetro MMC}',
-          explanation: 'A Tolerância Total Permitida passa a ser: Tolerância Base + Bônus.'
+          name: 'Distância Radial Total de Posição',
+          formula: 'D_{radial} = 2 \\cdot \\sqrt{\\Delta X^2 + \\Delta Y^2}',
+          explanation: 'Se D_radial ≤ 0.014 in, o furo atende à especificação de posição do GD&T.'
         }
       ],
-      inspectionMethod: 'A peça é fixada no Sistema de Referência de Datums (DRF) 3-2-1 e o centro do elemento é medido por CMM ou verificado através de um pino de calibre funcional usinado na Condição Virtual.'
+      inspectionMethod: 'A peça é avaliada comparando o veredito do sistema linear (quadrado de 0.010) contra a zona cilíndrica ⌀ 0.014 no comparador de metrologia.'
     },
     model3DConfig: {
       modelType: 'block_single_hole',
@@ -55,31 +54,21 @@ export const CURRICULUM_MODULES: ModuleData[] = [
     },
     sliderConfig: [
       {
-        key: 'holeDiameter',
-        label: 'Diâmetro Usinado do Furo',
-        unit: 'in',
-        min: 3.000,
-        max: 3.030,
-        step: 0.001,
-        defaultValue: 3.000,
-        description: 'MMC = 3.000 in | LMC = 3.030 in'
-      },
-      {
         key: 'deviationX',
-        label: 'Desvio Real de Usinagem X',
+        label: 'Desvio no Eixo X (ΔX)',
         unit: 'in',
-        min: -0.015,
-        max: 0.015,
+        min: -0.008,
+        max: 0.008,
         step: 0.001,
         defaultValue: 0.000,
         description: 'Deslocamento da ferramenta no eixo horizontal'
       },
       {
         key: 'deviationY',
-        label: 'Desvio Real de Usinagem Y',
+        label: 'Desvio no Eixo Y (ΔY)',
         unit: 'in',
-        min: -0.015,
-        max: 0.015,
+        min: -0.008,
+        max: 0.008,
         step: 0.001,
         defaultValue: 0.000,
         description: 'Deslocamento da ferramenta no eixo vertical'
@@ -90,70 +79,70 @@ export const CURRICULUM_MODULES: ModuleData[] = [
         id: 'ex-1-1',
         stepNumber: 1,
         type: 'quiz_conceptual',
-        title: '1. A Vantagem da Zona Cilíndrica',
+        title: '1. A Diagonal da Zona Quadrada',
         difficulty: 'Fácil',
-        instruction: 'Se uma cota linear tradicional define ±0.005 de tolerância de posição nos eixos X e Y, qual é a distância máxima permitida do centro até os cantos diagonais da zona quadrada?',
-        options: ['±0.005 in', '±0.007 in (aproximadamente)', '±0.010 in', '±0.014 in'],
+        instruction: 'Uma cota linear define a posição de um furo como 2.000 ± 0.005 em X e 2.000 ± 0.005 em Y. Qual é a distância máxima do centro teórico até os cantos da zona de tolerância quadrada?',
+        options: ['0.005 in', '0.0071 in (√(0.005² + 0.005²))', '0.010 in', '0.014 in'],
         correctOptionIndex: 1,
-        commentedSolution: 'Correto! Pelo teorema de Pitágoras, a diagonal de um quadrado de lado 0.010 (±0.005) é √(0.005² + 0.005²) ≈ 0.0071. Portanto, o conjunto já aceita 0.007 de erro na diagonal. O GD&T transforma isso em uma zona circular uniforme de ⌀ 0.014, aumentando a área útil em 57%.'
+        commentedSolution: 'Correto! Pelo teorema de Pitágoras, a diagonal de meia zona (0.005 x 0.005) é √(0.005² + 0.005²) ≈ 0.0071 in. Isso significa que o conjunto mecânico já aceita até 0.0071 in de erro quando a ferramenta se desloca em diagonal.'
       },
       {
         id: 'ex-1-2',
         stepNumber: 2,
-        type: 'calculation',
-        title: '2. Cálculo de Bônus em Furos (MMC)',
+        type: 'interactive_3d',
+        title: '2. Salvando a Peça na Diagonal',
         difficulty: 'Intermediário',
-        instruction: 'Um furo especificado como ⌀ 3.000-3.030 possui a tolerância [ ⌖ | ⌀ 0.014 Ⓜ | A | B | C ]. Se o operador usinar o furo com ⌀ 3.020 in, qual será a Tolerância Total de Posição disponível?',
-        numericTolerance: 0.001,
-        correctAnswerNumeric: 0.034,
-        commentedSolution: 'Perfeito! O MMC de um furo é seu menor limite (3.000 in). O Bônus é: 3.020 - 3.000 = 0.020 in. Somando à tolerância base de 0.014 in, a Tolerância Total permitida passa a ser 0.034 in.'
+        instruction: 'Mova os sliders no painel direito para ΔX = +0.006 in e ΔY = +0.006 in. Observe o veredito duplo na tela.',
+        interactiveAction: {
+          requiredSliderKey: 'deviationX',
+          targetValueMin: 0.0055,
+          targetValueMax: 0.0065,
+          triggerStatus: 'APROVADO'
+        },
+        commentedSolution: 'Perfeito! O desvio linear em X (0.006) ultrapassou o limite de ±0.005, reprovando no sistema tradicional. Porém, a distância radial total é 2 × √(0.006² + 0.006²) = 0.0136 in, que cabe com folga dentro da zona cilíndrica de ⌀ 0.014 in!'
       },
       {
         id: 'ex-1-3',
         stepNumber: 3,
-        type: 'interactive_3d',
-        title: '3. Testando a Folga no 3D',
+        type: 'quiz_conceptual',
+        title: '3. O Ganho de 57% de Área',
         difficulty: 'Intermediário',
-        instruction: 'Aumente o diâmetro do furo para 3.020 in. Em seguida, desloque o centro em X para +0.012 in e Y para +0.012 in. Observe que a peça continua APROVADA graças ao crescimento do cilindro verde!',
-        interactiveAction: {
-          requiredSliderKey: 'holeDiameter',
-          targetValueMin: 3.018,
-          targetValueMax: 3.022,
-          triggerStatus: 'APROVADO'
-        },
-        commentedSolution: 'Excelente! Com o furo a 3.020, o erro radial total é 2 × √(0.012² + 0.012²) = 0.0339 in. Como a tolerância total subiu para 0.034 in, a peça é salva pelo modificador MMC!'
+        instruction: 'A área da zona quadrada é (0.010 × 0.010) = 0.000100 in². A área da zona circular circunscrita (⌀ 0.01414) é (π × 0.01414²) / 4 ≈ 0.000157 in². Qual é a porcentagem exata de tolerância extra que a fábrica ganha sem alterar os parafusos?',
+        options: ['14%', '25%', '57%', '100%'],
+        correctOptionIndex: 2,
+        commentedSolution: 'Excelente! A zona circular oferece 57% a mais de área de usinagem permissível. Isso reduz drasticamente o refugo na linha de produção sem comprometer a montabilidade.'
       },
       {
         id: 'ex-1-4',
         stepNumber: 4,
         type: 'quiz_conceptual',
-        title: '4. Datums Implícitos vs Explícitos',
+        title: '4. O Problema dos Datums Implícitos',
         difficulty: 'Difícil',
-        instruction: 'Qual é o principal risco de fabricar uma peça cotada apenas com tolerâncias lineares (±) sem indicação de Datums geométricos?',
+        instruction: "Em um desenho com cotas apenas em mais ou menos (±), o que significa dizer que os referenciais são 'Datums Implícitos'?",
         options: [
-          'A peça não poderá ser usinada em máquinas CNC.',
-          'O custo da matéria-prima metálica aumenta.',
-          'Inspetores e operadores podem medir a peça a partir de faces diferentes, gerando montagens desalinhadas.',
-          'As ferramentas de corte sofrem desgaste 57% mais rápido.'
+          'Que os Datums são calculados por computador automaticamente.',
+          'Que o desenho não define qual face apoiar primeiro na mesa, deixando a ordem de medição a critério do operador.',
+          'Que a peça não possui faces planas.',
+          'Que a peça tem tolerância zero.'
         ],
-        correctOptionIndex: 2,
-        commentedSolution: 'Exato! Sem Datums explícitos, o desenho deixa a ordem de fixação a critério de quem mede. Se o operador apoiar a peça pela base horizontal e o inspetor apoiar pela lateral, a peça pode ser aprovada no teste e falhar catastroficamente na montagem final.'
+        correctOptionIndex: 1,
+        commentedSolution: 'Exato! Datums implícitos não possuem ordem de precedência declarada. Se o operador apoiar a peça pela base e o inspetor apoiar pela lateral, uma peça usinada perfeitamente pode ser reprovada na inspeção por conflito de orientação.'
       },
       {
         id: 'ex-1-5',
         stepNumber: 5,
         type: 'quiz_conceptual',
-        title: '5. Quando Utilizar GD&T?',
+        title: '5. Por Que o GD&T Surgiu?',
         difficulty: 'Especialista',
-        instruction: 'De acordo com o Capítulo 1 de Cogorno, qual é a recomendação mandatória sobre quando aplicar controles de GD&T?',
+        instruction: 'Qual foi o evento histórico e a necessidade industrial que motivaram o comitê que deu origem às normas ANSI/ASME Y14.5?',
         options: [
-          'Apenas em peças aeroespaciais com custo superior a 10 mil dólares.',
-          'Em todos os elementos de tamanho (features of size) que requerem localização e orientação funcional.',
-          'Apenas quando a tolerância dimensional for menor que ±0.001 mm.',
-          'Somente quando o cliente exigir a norma militar MIL-STD-8.'
+          'A criação dos computadores e dos softwares CAD 3D na década de 1980.',
+          'A Segunda Guerra Mundial, onde peças sobressalentes feitas por fornecedores diferentes atendiam às cotas ± mas não montavam em campo.',
+          'A substituição obrigatória do sistema métrico pelo sistema em polegadas.',
+          'A invenção das máquinas de medição por coordenadas (CMM).'
         ],
         correctOptionIndex: 1,
-        commentedSolution: 'Resposta de Especialista! A regra máxima de projeto é: localize e oriente todos os elementos de tamanho com controles de GD&T. Isso garante intercambiabilidade, viabiliza calibres funcionais e reduz retrabalhos.'
+        commentedSolution: 'Resposta de Especialista! O livro de Gene R. Cogorno relata que durante a Segunda Guerra Mundial peças eram fabricadas rigorosamente dentro das cotas lineares, mas não intercambiavam. O GD&T foi criado para garantir montagem 100% confiável e padronizar a interpretação técnica mundial.'
       }
     ]
   },

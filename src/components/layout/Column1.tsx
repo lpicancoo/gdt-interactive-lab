@@ -1,13 +1,15 @@
 import React from 'react';
-import { BookOpen, Target, FileText, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { BookOpen, Target, FileText, CheckCircle2, ShieldCheck, PlayCircle } from 'lucide-react';
 import { useGdtStore } from '../../store/useGdtStore';
 import { CURRICULUM_MODULES } from '../../data/curriculumData';
 import ExerciseEngine from '../ui/ExerciseEngine';
+import MathFormula from '../ui/MathFormula';
 
 const Column1: React.FC = () => {
   const { 
     activeModule, setActiveModule, 
-    activeTab, setActiveTab
+    activeTab, setActiveTab,
+    activeConceptIndex, setActiveConceptIndex
   } = useGdtStore();
 
   const currentModule = CURRICULUM_MODULES[activeModule] || CURRICULUM_MODULES[0];
@@ -85,23 +87,42 @@ const Column1: React.FC = () => {
             {/* Key Points */}
             <div className="space-y-3">
               <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider text-slate-400">
-                Conceitos-Chave da Norma ASME Y14.5
+                Conceitos-Chave (Clique para ativar no 3D)
               </h4>
 
-              {currentModule.theoryContent.keyPoints.map((point, index) => (
-                <div key={index} className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
-                  <h5 className="font-bold text-slate-800 text-xs text-blue-900 flex items-center gap-1.5">
-                    <CheckCircle2 size={14} className="text-blue-600 shrink-0" />
-                    {point.topic}
-                  </h5>
-                  <p className="text-xs text-slate-600 leading-relaxed pl-5">
-                    {point.description}
-                  </p>
-                </div>
-              ))}
+              {currentModule.theoryContent.keyPoints.map((point, index) => {
+                const isActiveConcept = activeConceptIndex === index;
+
+                return (
+                  <div 
+                    key={index} 
+                    onClick={() => setActiveConceptIndex(index)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer select-none space-y-1.5 ${
+                      isActiveConcept
+                        ? 'border-blue-600 bg-blue-50/50 shadow-md ring-2 ring-blue-100'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <h5 className="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                        <CheckCircle2 size={14} className={isActiveConcept ? 'text-blue-600' : 'text-slate-400'} />
+                        {point.topic}
+                      </h5>
+                      {isActiveConcept && (
+                        <span className="text-[10px] font-extrabold bg-blue-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                          <PlayCircle size={10} /> Ativo no 3D
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed pl-5">
+                      {point.description}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Engineering Formulas */}
+            {/* Engineering Formulas with MathFormula */}
             {currentModule.theoryContent.engineeringFormulas && currentModule.theoryContent.engineeringFormulas.length > 0 && (
               <div className="space-y-2.5">
                 <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider text-slate-400">
@@ -109,13 +130,11 @@ const Column1: React.FC = () => {
                 </h4>
 
                 {currentModule.theoryContent.engineeringFormulas.map((form, idx) => (
-                  <div key={idx} className="bg-blue-50/60 p-3.5 rounded-xl border border-blue-200 space-y-1.5">
-                    <span className="font-bold text-blue-900 text-xs block">
+                  <div key={idx} className="bg-blue-50/40 p-3.5 rounded-xl border border-blue-200 space-y-2">
+                    <span className="font-bold text-blue-950 text-xs block">
                       {form.name}
                     </span>
-                    <div className="bg-white px-3 py-2 rounded-lg border border-blue-200 font-mono text-xs text-slate-800 font-semibold shadow-inner overflow-x-auto text-center">
-                      {form.formula}
-                    </div>
+                    <MathFormula formula={form.formula} />
                     <p className="text-[11px] text-slate-600 leading-normal italic">
                       {form.explanation}
                     </p>
