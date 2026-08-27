@@ -1,6 +1,6 @@
 import React, { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Grid } from '@react-three/drei';
+import { OrbitControls, ContactShadows, Grid } from '@react-three/drei';
 import FlangeModel from './FlangeModel';
 import ToleranceZones from './ToleranceZones';
 import VirtualGaugePins from './VirtualGaugePins';
@@ -34,7 +34,8 @@ const Viewport3D: React.FC = () => {
     >
       <color attach="background" args={['#f8fafc']} /> {/* slate-50 */}
       
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.6} />
+      <hemisphereLight intensity={0.4} groundColor="#cbd5e1" color="#ffffff" />
       <directionalLight 
         position={[10, 10, 5]} 
         intensity={1.5} 
@@ -42,8 +43,6 @@ const Viewport3D: React.FC = () => {
         shadow-mapSize={[1024, 1024]}
       />
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-      
-      <Environment preset="studio" environmentIntensity={0.5} />
 
       <Grid 
         infiniteGrid 
