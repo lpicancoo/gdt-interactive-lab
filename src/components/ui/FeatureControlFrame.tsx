@@ -12,6 +12,8 @@ const FeatureControlFrame: React.FC = () => {
   const currentModule = CURRICULUM_MODULES[activeModule] || CURRICULUM_MODULES[0];
   const fcf = currentModule.fcfSpecification;
 
+  if (!fcf) return null;
+
   const handleDatumClick = (datum: string) => {
     setSelectedDatumInFCF(selectedDatumInFCF === datum ? null : datum);
   };

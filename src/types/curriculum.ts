@@ -39,7 +39,7 @@ export interface ModuleData {
     secondaryModifier?: string;
     tertiaryDatum?: string;
     tertiaryModifier?: string;
-  };
+  } | null;
   theoryContent: {
     title: string;
     introduction: string;

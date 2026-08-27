@@ -1,192 +1,142 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGdtStore } from '../../store/useGdtStore';
+import { Text } from '@react-three/drei';
 
 const SteppedShaftBlock: React.FC = () => {
   const { 
-    eccentricity,
-    circularityError,
-    showToleranceZones,
-    showDatums
+    sliderValues,
+    activeModule,
+    activeConceptIndex
   } = useGdtStore();
 
   const shaftGroupRef = useRef<THREE.Group>(null);
-  const midMeshRef = useRef<THREE.Mesh>(null);
-  const probeGroupRef = useRef<THREE.Group>(null);
 
-  const visualScale = 8.0;
+  // Chapter 2 Thermal parameters
+  const temp = sliderValues.temperature ?? 20;
+  const l20 = sliderValues.machinedTolerance ?? 100.000;
 
-  // Dimensions along X axis
+  // Thermal expansion scaling for 3D visual feedback
+  const deltaT = temp - 20;
+  // Exaggerate thermal expansion factor for visual 3D demonstration
+  const expansionFactor = 1 + (deltaT * 0.0035);
+
+  const isChapter2 = activeModule === 1;
+
+  // Geometry dimensions
   const journalRadius = 0.8;
-  const journalLength = 2.0;
+  const journalLength = 2.0 * (isChapter2 ? expansionFactor : 1);
 
-  const midRadius = 1.6;
-  const midLength = 3.2;
+  const midRadius = 1.4;
+  const midLength = 3.5 * (isChapter2 ? expansionFactor : 1);
 
-  // Geometry for middle cylinder with high segment count for ovalization
-  const baseMidGeometry = useMemo(() => {
-    // CylinderGeometry along Y axis by default, we will rotate it to orient along X axis
-    return new THREE.CylinderGeometry(midRadius, midRadius, midLength, 64, 16);
-  }, [midRadius, midLength]);
-
-  const deformedMidGeometry = useMemo(() => {
-    return baseMidGeometry.clone();
-  }, [baseMidGeometry]);
-
-  const currentRotationRef = useRef<number>(0);
-
+  // Slow rotation for 3D inspection view
   useFrame((_, delta) => {
-    // Rotate shaft continuously around X axis
-    currentRotationRef.current += delta * 1.5;
-    if (shaftGroupRef.current) {
-      shaftGroupRef.current.rotation.x = currentRotationRef.current;
-    }
-
-    // Apply vertex deformation for ovalization on middle cylinder
-    if (midMeshRef.current) {
-      const posAttr = deformedMidGeometry.attributes.position;
-      const baseAttr = baseMidGeometry.attributes.position;
-
-      for (let i = 0; i < posAttr.count; i++) {
-        const x = baseAttr.getX(i);
-        const y = baseAttr.getY(i);
-        const z = baseAttr.getZ(i);
-
-        const angle = Math.atan2(z, x);
-        const radius = Math.sqrt(x * x + z * z);
-
-        // Ovalization modulation cos(2 * angle)
-        const ovalDelta = (circularityError * visualScale) * Math.cos(2 * angle);
-        const newRadius = radius + ovalDelta;
-
-        posAttr.setX(i, Math.cos(angle) * newRadius);
-        posAttr.setZ(i, Math.sin(angle) * newRadius);
-        posAttr.setY(i, y);
-      }
-
-      posAttr.needsUpdate = true;
-      deformedMidGeometry.computeVertexNormals();
-    }
-
-    // Dynamic Probe (Relógio Comparador) tracking the oscillating top surface
-    if (probeGroupRef.current) {
-      const rot = currentRotationRef.current;
-      // Instantaneous displacement due to eccentricity and ovalization at top contact point
-      const eccShift = (eccentricity * visualScale) * Math.sin(rot);
-      const ovalShift = (circularityError * visualScale) * Math.cos(2 * rot);
-      
-      const currentSurfaceY = midRadius + eccShift + ovalShift;
-      probeGroupRef.current.position.y = currentSurfaceY;
+    if (shaftGroupRef.current && !isChapter2) {
+      shaftGroupRef.current.rotation.x += delta * 0.8;
     }
   });
 
-  const measuredDeviation = (eccentricity * 2) + circularityError;
-  const isPass = measuredDeviation <= 0.050;
-
-  const innerRadiusZone = midRadius - (0.05 * visualScale / 2);
-  const outerRadiusZone = midRadius + (0.05 * visualScale / 2);
-
   return (
     <group position={[0, 0, 0]}>
-      {/* Dashed Line for Datum Axis A-B along X Axis */}
-      {showDatums && (
-        <group>
-          {/* Axis line */}
-          <line>
-            <bufferGeometry attach="geometry" {...new THREE.BufferGeometry().setFromPoints([
-              new THREE.Vector3(-5.5, 0, 0),
-              new THREE.Vector3(5.5, 0, 0)
-            ])} />
-            <lineDashedMaterial attach="material" color="#2563eb" dashSize={0.3} gapSize={0.15} linewidth={2} />
-          </line>
-          
-          {/* Datum A Label Box (Left Journal) */}
-          <mesh position={[-3.8, -1.5, 0]}>
-            <boxGeometry args={[0.7, 0.7, 0.7]} />
-            <meshStandardMaterial color="#3b82f6" />
-          </mesh>
-
-          {/* Datum B Label Box (Right Journal) */}
-          <mesh position={[3.8, -1.5, 0]}>
-            <boxGeometry args={[0.7, 0.7, 0.7]} />
-            <meshStandardMaterial color="#3b82f6" />
-          </mesh>
-        </group>
-      )}
-
-      {/* Rotating Stepped Shaft Group */}
-      <group ref={shaftGroupRef}>
-        {/* Left Journal (Datum A Cylinder) */}
-        <mesh position={[-2.5, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
+      {/* Rotating / Static Stepped Shaft Group */}
+      <group ref={shaftGroupRef} scale={[isChapter2 ? expansionFactor : 1, 1, 1]}>
+        {/* Left Journal */}
+        <mesh position={[-2.6, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
           <cylinderGeometry args={[journalRadius, journalRadius, journalLength, 32]} />
           <meshStandardMaterial color="#64748b" metalness={0.8} roughness={0.2} />
         </mesh>
 
-        {/* Right Journal (Datum B Cylinder) */}
-        <mesh position={[2.5, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
+        {/* Right Journal */}
+        <mesh position={[2.6, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
           <cylinderGeometry args={[journalRadius, journalRadius, journalLength, 32]} />
           <meshStandardMaterial color="#64748b" metalness={0.8} roughness={0.2} />
         </mesh>
 
-        {/* Middle Central Cylinder (with Eccentricity Offset & Ovalization) */}
-        <mesh 
-          ref={midMeshRef} 
-          geometry={deformedMidGeometry}
-          position={[0, eccentricity * visualScale, 0]} 
-          rotation={[0, 0, Math.PI / 2]} 
-          castShadow 
-          receiveShadow
-        >
+        {/* Middle Central Body */}
+        <mesh position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
+          <cylinderGeometry args={[midRadius, midRadius, midLength, 64]} />
           <meshStandardMaterial 
-            color={isPass ? "#94a3b8" : "#f87171"} 
+            color={temp > 25 ? "#f97316" : temp < 15 ? "#0284c7" : "#94a3b8"} 
             metalness={0.75} 
             roughness={0.25} 
-            envMapIntensity={1.2}
           />
         </mesh>
       </group>
 
-      {/* Static Concentric Green Tolerance Ring / Cylindrical Envelope Zone */}
-      {showToleranceZones && (
-        <group position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <mesh>
-            <cylinderGeometry args={[outerRadiusZone, outerRadiusZone, midLength + 0.2, 32, 1, true]} />
-            <meshBasicMaterial color="#10b981" transparent opacity={0.35} side={THREE.DoubleSide} />
-          </mesh>
-          <mesh>
-            <cylinderGeometry args={[innerRadiusZone, innerRadiusZone, midLength + 0.2, 32, 1, true]} />
-            <meshBasicMaterial color="#34d399" transparent opacity={0.3} side={THREE.DoubleSide} />
-          </mesh>
-        </group>
-      )}
-
-      {/* Dial Indicator (Relógio Comparador) at X=0 touching surface */}
-      <group ref={probeGroupRef} position={[0, midRadius, 0]}>
-        {/* Contact Sphere */}
-        <mesh position={[0, 0.15, 0]}>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.1} />
+      {/* CMM PROBE / APALPADOR DE MEDIÇÃO ENCOSTADO NA SUPERFÍCIE */}
+      <group position={[0, midRadius + 0.15, 0]}>
+        {/* Ruby Probe Tip Sphere */}
+        <mesh position={[0, 0.12, 0]}>
+          <sphereGeometry args={[0.12, 32, 32]} />
+          <meshStandardMaterial color="#ef4444" roughness={0.1} metalness={0.9} />
         </mesh>
 
-        {/* Indicator Stem / Rod */}
-        <mesh position={[0, 1.2, 0]}>
-          <cylinderGeometry args={[0.06, 0.06, 1.9, 16]} />
-          <meshStandardMaterial color="#cbd5e1" metalness={0.8} roughness={0.2} />
+        {/* Probe Stylus Shaft */}
+        <mesh position={[0, 0.9, 0]}>
+          <cylinderGeometry args={[0.04, 0.04, 1.4, 16]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.1} />
         </mesh>
 
-        {/* Dial Gauge Body */}
-        <mesh position={[0, 2.4, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.55, 0.55, 0.3, 32]} />
+        {/* CMM Probe Sensor Head */}
+        <mesh position={[0, 1.8, 0]}>
+          <cylinderGeometry args={[0.25, 0.25, 0.5, 32]} />
           <meshStandardMaterial color="#1e293b" />
         </mesh>
-        
-        {/* Dial Face */}
-        <mesh position={[0, 2.4, 0.16]}>
-          <circleGeometry args={[0.48, 32]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
+
+        <Text position={[0, 2.3, 0]} fontSize={0.22} color="#1e293b">
+          Apalpador CMM (Inspeção a {temp}°C)
+        </Text>
       </group>
+
+      {/* COTAS LINEARES 3D (LINHAS DE EXTENSÃO E SETAS DIMENSIONAIS) */}
+      {isChapter2 && (
+        <group>
+          {/* Cota do Comprimento Total (100.000 ± 0.020 mm) */}
+          <group position={[0, -2.2, 0]}>
+            {/* Horizontal dimension line */}
+            <mesh>
+              <boxGeometry args={[7.2 * expansionFactor, 0.03, 0.03]} />
+              <meshBasicMaterial color="#2563eb" />
+            </mesh>
+            {/* Left extension line */}
+            <mesh position={[-3.6 * expansionFactor, 1.1, 0]}>
+              <boxGeometry args={[0.03, 2.2, 0.03]} />
+              <meshBasicMaterial color="#94a3b8" />
+            </mesh>
+            {/* Right extension line */}
+            <mesh position={[3.6 * expansionFactor, 1.1, 0]}>
+              <boxGeometry args={[0.03, 2.2, 0.03]} />
+              <meshBasicMaterial color="#94a3b8" />
+            </mesh>
+            {/* Dimension Text */}
+            <Text position={[0, -0.4, 0]} fontSize={0.28} color="#1e293b font-bold">
+              Comprimento Nominal: {l20.toFixed(3)} mm (a 20°C)
+            </Text>
+          </group>
+
+          {/* Cota do Diâmetro Central (Ø 40 mm) */}
+          <group position={[0, 0, 1.8]}>
+            <mesh position={[0, 0, 0]}>
+              <boxGeometry args={[0.03, midRadius * 2, 0.03]} />
+              <meshBasicMaterial color="#059669" />
+            </mesh>
+            <Text position={[0.6, 0, 0]} fontSize={0.25} color="#059669 font-bold">
+              ⌀ 40.000 mm
+            </Text>
+          </group>
+
+          {/* Callout da Regra Selecionada no Painel Esquerdo */}
+          {activeConceptIndex !== undefined && (
+            <group position={[0, 3.0, 0]}>
+              <Text position={[0, 0, 0]} fontSize={0.24} color="#2563eb font-bold">
+                Foco ASME Rule #{activeConceptIndex + 1}: Inspeção Metrológica
+              </Text>
+            </group>
+          )}
+        </group>
+      )}
     </group>
   );
 };

@@ -152,72 +152,94 @@ export const CURRICULUM_MODULES: ModuleData[] = [
     id: 'mod-2-fundamentals',
     chapterNumber: 2,
     title: 'Módulo 2: Fundamentos de Cotagem',
-    subtitle: 'As 10 Regras Fundamentais e a Padronização de Limites',
+    subtitle: 'As 10 Regras Fundamentais do Desenho Técnico e Padronização de Limites (ASME Y14.5)',
     category: 'fundamentals',
-    fcfSpecification: {
-      symbol: '⌖',
-      toleranceValue: '0.15',
-      materialModifier: 'Ⓜ',
-      primaryDatum: 'A',
-      secondaryDatum: 'B',
-      tertiaryDatum: 'C'
-    },
+    fcfSpecification: null,
     theoryContent: {
-      title: 'As 10 Regras Fundamentais do Desenho Técnico',
-      introduction: 'Muitos desenhistas cometem erros básicos de formatação de cotas que geram rejeições legais de lotes inteiros. A norma ASME Y14.5 estabelece 10 regras invioláveis para a criação de desenhos de engenharia.',
+      title: 'As 10 Regras Fundamentais da Norma ASME Y14.5',
+      introduction: 'Para que um desenho técnico tenha validade jurídica e técnica sem ambiguidades de interpretação entre projeto, usinagem e inspeção, a norma ASME Y14.5 estabelece 10 regras mandatórias que regem toda a engenharia mecânica.',
       keyPoints: [
         {
-          topic: '1. Toda Cota Deve Ter Tolerância',
-          description: 'Nenhuma dimensão pode existir sem tolerância, exceto cotas identificadas como Referência (entre parênteses), Básico (em caixa de texto), Mínimo, Máximo ou Estoque (Stock).'
+          topic: 'Regra 1: Toda Dimensão Deve Ter Tolerância',
+          description: 'Cada dimensão no desenho DEVE ter uma tolerância associada (direta na cota ou via legenda geral), exceto dimensões expressamente identificadas como Referência (entre parênteses), Básico (em caixa retangular), Mínimo, Máximo ou Estoque (Stock).'
         },
         {
-          topic: '2. Temperatura de Referência Padrão',
-          description: 'Salvo indicação em contrário, todas as dimensões e tolerâncias aplicam-se à temperatura de 68°F (20°C). Medições em outras temperaturas devem ser corrigidas pelo coeficiente de dilatação térmica.'
+          topic: 'Regra 2: Descrição Completa e Sem Redundâncias',
+          description: 'Cada elemento deve ser completamente dimensionado e toleranciado para permitir sua fabricação sem que o operador precise deduzir ou calcular distâncias. Cotas de referência devem ser mantidas no mínimo estritamente necessário.'
         },
         {
-          topic: '3. Ângulo de 90° Implícito',
-          description: 'Linhas e eixos desenhados visualmente a 90° possuem um ângulo de 90° implícito governado pela tolerância angular da legenda. Se as linhas forem definidas por cotas básicas, aplica-se um ângulo Básico de 90°.'
+          topic: 'Regra 3: Função e Intercambiabilidade',
+          description: 'As dimensões devem ser selecionadas e organizadas para refletir a montagem e a função real da peça, não podendo estar sujeitas a mais de uma interpretação geométrica.'
         },
         {
-          topic: '4. Regras de Zeros para Polegada vs Milímetro',
-          description: 'Em polegadas: NUNCA coloque zero antes do ponto (.250 in) e mantenha o mesmo número de casas decimais na cota e na tolerância (.250 ± .005). Em milímetros: SEMPRE coloque zero antes da vírgula/ponto (0.25 mm) e não adicione zeros desnecessários (25 mm, não 25.00).'
+          topic: 'Regra 4: Independência do Processo de Fabricação',
+          description: 'O desenho de engenharia deve definir o produto final acabado (geometria e tolerância) SEM ditar o método de fabricação (não deve exigir se a peça será fresada, torneada ou retificada, salvo exigência funcional de processo).'
+        },
+        {
+          topic: 'Regra 5: Ângulo de 90° Implícito',
+          description: 'Aplica-se um ângulo de 90° implícito quando linhas de centro e superfícies são representadas visualmente em ângulo reto no desenho e nenhum valor angular for especificado. A tolerância aplicada é a tolerância angular geral da legenda.'
+        },
+        {
+          topic: 'Regra 6: Ângulo Básico de 90° Implícito',
+          description: 'Aplica-se um ângulo Básico de 90° (teoricamente exato, sem tolerância na cota) quando linhas de centro de elementos em um padrão ou superfícies a 90° forem localizadas ou definidas por dimensões básicas.'
+        },
+        {
+          topic: 'Regra 7: Temperatura Padrão de Referência (20°C / 68°F)',
+          description: 'Salvo indicação em contrário, todas as dimensões e tolerâncias aplicam-se à temperatura padrão internacional de 68°F (20°C). Medições efetuadas em outras temperaturas devem ser matematicamente compensadas pela dilatação térmica.'
+        },
+        {
+          topic: 'Regra 8: Condição de Estado Livre (Free-State)',
+          description: 'Todas as dimensões aplicam-se na condição de estado livre (sem forças ou restrições externas), exceto para peças flexíveis/não-rígidas devidamente identificadas.'
+        },
+        {
+          topic: 'Regra 9: Abrangência Espacial da Tolerância',
+          description: 'Salvo indicação em contrário, todas as tolerâncias geométricas aplicam-se à profundidade total, comprimento total e largura total do elemento inspecionado.'
+        },
+        {
+          topic: 'Regra 10: Nível de Aplicação do Desenho',
+          description: 'Dimensões e tolerâncias aplicam-se estritamente ao nível do desenho onde são especificadas. Uma cota definida no detalhamento de uma peça individual não se estende automaticamente ao desenho de conjunto montado.'
         }
       ],
       engineeringFormulas: [
         {
-          name: 'Interpretação de Limites Absolutos',
-          formula: '4.000 \\equiv 4.000000...0',
-          explanation: 'No GD&T, todos os limites dimensionais são absolutos. Um limite de 4.25 significa exatamente 4.25000... sem arredondamento permissível.'
+          name: 'Compensação Térmica de Medição (Regra 7)',
+          formula: '\\Delta L = L_{nominal} \\cdot \\alpha \\cdot (T_{medida} - 20^{\\circ}\\text{C})',
+          explanation: 'Onde α é o coeficiente de dilatação térmica do material. Se uma peça de aço (α = 11.5 µm/m°C) for medida a 35°C, seu tamanho real medido deve ser corrigido para 20°C antes de laudar a aprovação.'
+        },
+        {
+          name: 'Interpretação de Limites Dimensionais Absolutos',
+          formula: '4.000\\text{ in} \\equiv 4.000000...0\\text{ in}',
+          explanation: 'Limites dimensionais não aceitam arredondamento. 4.250 in significa 4.250000... in.'
         }
       ],
-      inspectionMethod: 'Aferição em ambiente climatizado a 20°C utilizando padrões rastreáveis calibrados conforme as regras de algarismos significativos.'
+      inspectionMethod: 'Aferição dimensional em laboratório climatizado a 20°C com padrões rastreáveis e aplicação das regras de algarismos significativos.'
     },
     model3DConfig: {
       modelType: 'stepped_shaft',
       baseDimensions: { diameter1: 25, length1: 50, diameter2: 40, length2: 60 },
-      defaultFeatures: {},
+      defaultFeatures: { material: 'Aço Carbono (α = 11.5 µm/m°C)', nominalLength: 100.000 },
       toleranceZoneType: 'cylindrical'
     },
     sliderConfig: [
       {
         key: 'temperature',
-        label: 'Temperatura do Ambiente de Medição',
+        label: 'Temperatura da Sala de Medição',
         unit: '°C',
         min: 10,
         max: 40,
         step: 1,
         defaultValue: 20,
-        description: 'Padrão Normativo: 20°C (68°F)'
+        description: 'Padrão ASME/ISO: 20°C (68°F)'
       },
       {
-        key: 'thermalExpansion',
-        label: 'Desvio Térmico Resultante',
+        key: 'machinedTolerance',
+        label: 'Dimensão Usinada a 20°C',
         unit: 'mm',
-        min: -0.05,
-        max: 0.05,
-        step: 0.002,
-        defaultValue: 0.000,
-        description: 'Variação dimensional devida à temperatura'
+        min: 99.950,
+        max: 100.050,
+        step: 0.005,
+        defaultValue: 100.000,
+        description: 'Especificação: 100.000 ± 0.020 mm'
       }
     ],
     exercises: [
@@ -225,71 +247,71 @@ export const CURRICULUM_MODULES: ModuleData[] = [
         id: 'ex-2-1',
         stepNumber: 1,
         type: 'quiz_conceptual',
-        title: '1. Notação de Polegadas vs Milímetros',
+        title: '1. As 10 Regras: Temperatura Padrão',
         difficulty: 'Fácil',
-        instruction: 'Qual das seguintes opções representa a forma CORRETA de cotar um valor de um quarto de polegada de acordo com a norma ASME?',
-        options: ['0.25 in', '.250 in', '0.2500 in', ',25 in'],
+        instruction: 'De acordo com a Regra Fundamental nº 7 da ASME Y14.5, qual é a temperatura oficial de referência em que todas as dimensões de um projeto mecânico devem ser inspecionadas?',
+        options: ['0°C (32°F)', '20°C (68°F)', '25°C (77°F)', 'Qualquer temperatura ambiente da fábrica'],
         correctOptionIndex: 1,
-        commentedSolution: 'Correto! Na norma ASME para polegadas, nunca se coloca o zero antes do ponto decimal (.250) e a quantidade de casas decimais deve coincidir com a precisão da tolerância da legenda.'
+        commentedSolution: 'Correto! A Regra Fundamental nº 7 estabelece 68°F (20°C) como a temperatura de referência universal. Medições efetuadas em outras temperaturas devem ser matematicamente corrigidas pela dilatação térmica do material.'
       },
       {
         id: 'ex-2-2',
         stepNumber: 2,
         type: 'quiz_conceptual',
-        title: '2. Temperatura Padrão de Metrologia',
+        title: '2. Regra 1: Dimensões Sem Tolerância',
         difficulty: 'Fácil',
-        instruction: 'A que temperatura todas as dimensões de um desenho técnico devem ser inspecionadas, caso não haja nenhuma nota específica na legenda?',
-        options: ['0°C (32°F)', '20°C (68°F)', '25°C (77°F)', 'Temperatura ambiente da fábrica'],
-        correctOptionIndex: 1,
-        commentedSolution: 'Exato! A Regra Fundamental nº 7 estabelece que todas as medições devem ser realizadas a 68°F (20°C). Se medidas em outra temperatura, as dimensões devem ser ajustadas matematicamente.'
+        instruction: 'Qual dos seguintes tipos de cotas é uma EXCEÇÃO à Regra nº 1 e NÃO deve receber tolerância dimensional direta nem seguir a legenda geral?',
+        options: [
+          'Dimensão Básica (enquadrada em caixa retangular) ou Dimensão de Referência (entre parênteses).',
+          'Diâmetro externo usinado em torno CNC.',
+          'Espessura de uma chapa de aço usinada.',
+          'Profundidade de um furo roscado.'
+        ],
+        correctOptionIndex: 0,
+        commentedSolution: 'Exato! A Regra nº 1 estabelece que todas as cotas devem ter tolerância, EXCETO cotas de Referência (que são informativas), Básicas (teoricamente exatas, cuja tolerância vem no FCF), Mínimas, Máximas ou de Estoque.'
       },
       {
         id: 'ex-2-3',
         stepNumber: 3,
-        type: 'quiz_conceptual',
-        title: '3. Limites Absolutos',
+        type: 'calculation',
+        title: '3. Dilatação Térmica na Metrologia',
         difficulty: 'Intermediário',
-        instruction: 'Uma cota de espessura é indicada como 1.500 - 1.510 in. A máquina CMM mediu uma peça e acusou 1.5102 in. Essa peça é considerada aprovada?',
-        options: [
-          'Sim, porque 1.5102 arredonda para 1.510 em 3 casas decimais.',
-          'Não, porque todos os limites dimensionais são absolutos (1.510000...0).',
-          'Sim, desde que a peça esteja em temperatura ambiente.',
-          'Depende da tolerância da máquina de usinagem.'
-        ],
-        correctOptionIndex: 1,
-        commentedSolution: 'Perfeito! No GD&T, os limites dimensionais são absolutos. 1.510 significa 1.51000000... Qualquer valor acima (como 1.5102) viola o limite e reprova a peça.'
+        instruction: 'Um eixo de aço de 100.000 mm (α = 0.000012 mm/mm°C) com tolerância de 100.000 ± 0.020 mm foi medido no chão de fábrica a 35°C acusando 100.025 mm. Qual é o comprimento real da peça quando corrigido para 20°C?',
+        numericTolerance: 0.002,
+        correctAnswerNumeric: 100.007,
+        commentedSolution: 'Perfeito! ΔL = 100 × 0.000012 × (35 - 20) = +0.018 mm de expansão térmica. Subtraindo esse valor da medição a quente: 100.025 - 0.018 = 100.007 mm. A peça estava parecendo reprovada no calor da fábrica, mas a 20°C ela é perfeitamente APROVADA!'
       },
       {
         id: 'ex-2-4',
         stepNumber: 4,
         type: 'quiz_conceptual',
-        title: '4. Ângulos de 90 Graus sem Cota',
-        difficulty: 'Difícil',
-        instruction: 'Quando duas superfícies aparecem desenhadas a 90° em uma vista ortográfica e nenhuma cota angular está presente, qual tolerância rege o esquadro entre elas?',
+        title: '4. Regras de Notação: Polegadas vs Milímetros',
+        difficulty: 'Intermediário',
+        instruction: 'De acordo com as regras de padronização da ASME, qual das opções abaixo apresenta a formatação de cotas rigorosamente CORRETA?',
         options: [
-          'A peça deve ser perfeitamente a 90° sem tolerância de erro.',
-          'A tolerância angular geral da legenda (bloco de título), por se tratar de um ângulo implícito de 90°.',
-          'A tolerância de paralelismo da face oposta.',
-          'Aplica-se a Regra #1 de forma perfeita em MMC.'
+          'Em polegadas: 0.50 in | Em milímetros: 12.500 mm',
+          'Em polegadas: .500 in (sem zero antes do ponto) | Em milímetros: 12.5 mm (sem zeros desnecessários)',
+          'Em polegadas: ,50 in | Em milímetros: 012.5 mm',
+          'Ambos os sistemas devem usar sempre 3 casas decimais com zero à esquerda.'
         ],
         correctOptionIndex: 1,
-        commentedSolution: 'Correto! Linhas que se cruzam a 90° possuem uma cota angular implícita de 90°, governada pela tolerância geral de ângulos da legenda (ex: ±1°), a menos que estejam localizadas por cotas básicas.'
+        commentedSolution: 'Correto! Em polegadas nunca se usa zero à esquerda do ponto decimal (.500 in) e as casas decimais devem coincidir com a tolerância. Em milímetros usa-se zero à esquerda (0.5 mm) e não se adicionam zeros desnecessários (12.5 mm).'
       },
       {
         id: 'ex-2-5',
         stepNumber: 5,
         type: 'quiz_conceptual',
-        title: '5. Modelos CAD/CAM 3D e Tolerâncias',
-        difficulty: 'Especialista',
-        instruction: 'Um projetista afirma que, por fornecer o arquivo 3D sólido (.STEP/.IGES) diretamente para o centro de usinagem CNC, não é mais necessário especificar tolerâncias no desenho. Essa afirmação é verdadeira?',
+        title: '5. Regra 4: Métodos de Fabricação no Desenho',
+        difficulty: 'Difícil',
+        instruction: 'Um desenhista colocou a seguinte anotação em um desenho de produção: "FRESAR FACE SUPERIOR COM FRESA DE TOPO Ø50". Por que essa prática viola a Regra nº 4 da ASME Y14.5?',
         options: [
-          'Verdadeira, pois o arquivo CAD elimina qualquer variação física de fabricação.',
-          'Falsa, pois variações de ferramentas, fixação, calor e tensões residuais exigem tolerâncias explícitas fora da base CAD.',
-          'Verdadeira, desde que o software CAD seja de última geração.',
-          'Falsa apenas para peças plásticas injetadas.'
+          'Porque fresas de topo são proibidas em normas internacionais.',
+          'Porque o desenho de engenharia deve especificar o estado geométrico final da peça, e não ditar os métodos ou ferramentas de fabricação.',
+          'Porque a face deveria ser torneada.',
+          'Porque faltou especificar o avanço e a rotação da máquina.'
         ],
         correctOptionIndex: 1,
-        commentedSolution: 'Resposta de Especialista! O livro cita expressamente o aviso da norma ASME Y14.5: softwares CAD não eliminam o desgaste da ferramenta de corte, a flexão de fixação nem a deformação térmica. Se o modelo CAD não possui tolerâncias incluídas (MBD), elas devem ser definidas em documento formal.'
+        commentedSolution: 'Resposta de Especialista! A Regra Fundamental nº 4 afirma que o desenho deve definir a peça acabada sem especificar um processo de usinagem particular. O método de fabricação é responsabilidade da engenharia de processos/manufatura, não do desenho de produto.'
       }
     ]
   },
