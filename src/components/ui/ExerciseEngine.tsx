@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGdtStore } from '../../store/useGdtStore';
 import { CheckCircle2, ChevronRight, Calculator, Crosshair, BoxSelect, Cpu, Target, ShieldAlert, Award } from 'lucide-react';
 import OnboardingTour from './OnboardingTour';
@@ -836,111 +836,80 @@ const ExerciseEngine: React.FC = () => {
     );
   };
 
-  // Module 1 Hybrid Pipeline Implementation
-  if (activeModule === 1) {
-    const isStep1Done = formType === 'retilineidade' && warpTwist >= 0.08;
-    if (activeExercise === 1 && isStep1Done && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
+  // Safely evaluate interactive progress inside useEffect (preventing React re-render loops)
+  useEffect(() => {
+    if (activeModule === 1) {
+      if (activeExercise === 1 && formType === 'retilineidade' && warpTwist >= 0.08 && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
+      if (activeExercise === 2 && formType === 'planeza' && warpTwist >= 0.08 && !exerciseProgress[2]) {
+        setExerciseProgress(2, true);
+      }
     }
-
-    const isStep2Done = formType === 'planeza' && warpTwist >= 0.08;
-    if (activeExercise === 2 && isStep2Done && !exerciseProgress[2]) {
-      setExerciseProgress(2, true);
+    if (activeModule === 2) {
+      if (activeExercise === 1 && cylinderFormType === 'circularidade' && errorTaper >= 0.08 && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
+      if (activeExercise === 2 && cylinderFormType === 'cilindricidade' && errorTaper >= 0.08 && !exerciseProgress[2]) {
+        setExerciseProgress(2, true);
+      }
     }
-
-    return renderHybridModule('Exercícios: Módulo 1 (Planeza / Retilineidade)', EXERCISES_MOD_1_DATA, 1);
-  }
-
-  // Module 2 Hybrid Pipeline Implementation (Circularidade / Cilindricidade)
-  if (activeModule === 2) {
-    const isMod2Step1Done = cylinderFormType === 'circularidade' && errorTaper >= 0.08;
-    if (activeExercise === 1 && isMod2Step1Done && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
+    if (activeModule === 3) {
+      if (activeExercise === 1 && tiltZ >= 0.08 && (tiltZ + warpForm) > 0.05 && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
     }
-
-    const isMod2Step2Done = cylinderFormType === 'cilindricidade' && errorTaper >= 0.08;
-    if (activeExercise === 2 && isMod2Step2Done && !exerciseProgress[2]) {
-      setExerciseProgress(2, true);
+    if (activeModule === 4) {
+      if (activeExercise === 1 && Math.abs(angularError) >= 0.06 && (Math.abs(angularError) + warpForm) > 0.05 && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
     }
-
-    return renderHybridModule('Exercícios: Módulo 2 (Circularidade / Cilindricidade)', EXERCISES_MOD_2_DATA, 2);
-  }
-
-  // Module 3 Hybrid Pipeline Implementation (Paralelismo)
-  if (activeModule === 3) {
-    const isMod3Step1Done = tiltZ >= 0.08 && (tiltZ + warpForm) > 0.05;
-    if (activeExercise === 1 && isMod3Step1Done && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
+    if (activeModule === 5) {
+      if (activeExercise === 1 && selectedDatumInFCF === 'A' && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
+      const measuredDev = 2 * Math.sqrt(deviationX ** 2 + deviationY ** 2);
+      const bonus = Math.max(0, holeDiameter - 10.00);
+      const totalTol = 0.200 + bonus;
+      if (activeExercise === 3 && measuredDev > totalTol && !exerciseProgress[3]) {
+        setExerciseProgress(3, true);
+      }
     }
-
-    return renderHybridModule('Exercícios: Módulo 3 (Paralelismo)', EXERCISES_MOD_3_DATA, 3);
-  }
-
-  // Module 4 Hybrid Pipeline Implementation (Perpendicularidade)
-  if (activeModule === 4) {
-    const isMod4Step1Done = Math.abs(angularError) >= 0.06 && (Math.abs(angularError) + warpForm) > 0.05;
-    if (activeExercise === 1 && isMod4Step1Done && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
+    if (activeModule === 6) {
+      const runoutDev = (eccentricity * 2) + circularityError;
+      if (activeExercise === 1 && eccentricity >= 0.03 && runoutDev > 0.05 && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
     }
-
-    return renderHybridModule('Exercícios: Módulo 4 (Perpendicularidade)', EXERCISES_MOD_4_DATA, 4);
-  }
-
-  // Module 5 Hybrid Pipeline Implementation (Posição Real)
-  if (activeModule === 5) {
-    // Step 1: User clicked Datum A cell in FCF
-    if (activeExercise === 1 && selectedDatumInFCF === 'A' && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
+    if (activeModule === 7) {
+      const profileDev = Math.abs(peakDeviation) + Math.abs(valleySink);
+      if (activeExercise === 1 && peakDeviation >= 0.15 && profileDev > 0.20 && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
     }
-
-    // Step 3: User moved X/Y sliders until piece fails (REPROVADO)
-    const measuredDev = 2 * Math.sqrt(deviationX ** 2 + deviationY ** 2);
-    const bonus = Math.max(0, holeDiameter - 10.00);
-    const totalTol = 0.200 + bonus;
-    if (activeExercise === 3 && measuredDev > totalTol && !exerciseProgress[3]) {
-      setExerciseProgress(3, true);
+    if (activeModule === 8) {
+      const stackGap = lengthHousing - (lengthShaft + lengthWasher);
+      if (activeExercise === 1 && lengthHousing <= 49.80 && lengthShaft >= 45.10 && lengthWasher >= 4.55 && stackGap <= 0.15 && !exerciseProgress[1]) {
+        setExerciseProgress(1, true);
+      }
     }
+  }, [
+    activeModule, activeExercise, exerciseProgress, setExerciseProgress,
+    formType, warpTwist, cylinderFormType, errorTaper, tiltZ, warpForm,
+    angularError, selectedDatumInFCF, deviationX, deviationY, holeDiameter,
+    eccentricity, circularityError, peakDeviation, valleySink, lengthHousing,
+    lengthShaft, lengthWasher
+  ]);
 
-    return renderHybridModule('Exercícios: Módulo 5 (Posição Real)', EXERCISES_MOD_5_DATA, 5);
-  }
-
-  // Module 6 Hybrid Pipeline Implementation (Batimento Circular)
-  if (activeModule === 6) {
-    const runoutDev = (eccentricity * 2) + circularityError;
-    const isMod6Step1Done = eccentricity >= 0.03 && runoutDev > 0.05;
-    if (activeExercise === 1 && isMod6Step1Done && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
-    }
-
-    return renderHybridModule('Exercícios: Módulo 6 (Batimento Circular)', EXERCISES_MOD_6_DATA, 6);
-  }
-
-  // Module 7 Hybrid Pipeline Implementation (Perfil de Superfície)
-  if (activeModule === 7) {
-    const profileDev = Math.abs(peakDeviation) + Math.abs(valleySink);
-    const isMod7Step1Done = peakDeviation >= 0.15 && profileDev > 0.20;
-    if (activeExercise === 1 && isMod7Step1Done && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
-    }
-
-    return renderHybridModule('Exercícios: Módulo 7 (Perfil de Superfície)', EXERCISES_MOD_7_DATA, 7);
-  }
-
-  // Module 8 Hybrid Pipeline Implementation (Stack-Up de Tolerâncias)
-  if (activeModule === 8) {
-    const stackGap = lengthHousing - (lengthShaft + lengthWasher);
-    const isMod8Step1Done = lengthHousing <= 49.80 && lengthShaft >= 45.10 && lengthWasher >= 4.55 && stackGap <= 0.15;
-    if (activeExercise === 1 && isMod8Step1Done && !exerciseProgress[1]) {
-      setExerciseProgress(1, true);
-    }
-
-    return renderHybridModule('Exercícios: Módulo 8 (Stack-Up de Tolerâncias)', EXERCISES_MOD_8_DATA, 8);
-  }
-
-  // Module 9 Quiz Evaluation Implementation (Avaliação Geral)
-  if (activeModule === 9) {
-    return renderHybridModule('Simulado de Avaliação Geral', EXERCISES_MOD_9_DATA, 9);
-  }
+  if (activeModule === 1) return renderHybridModule('Exercícios: Módulo 1 (Planeza / Retilineidade)', EXERCISES_MOD_1_DATA, 1);
+  if (activeModule === 2) return renderHybridModule('Exercícios: Módulo 2 (Circularidade / Cilindricidade)', EXERCISES_MOD_2_DATA, 2);
+  if (activeModule === 3) return renderHybridModule('Exercícios: Módulo 3 (Paralelismo)', EXERCISES_MOD_3_DATA, 3);
+  if (activeModule === 4) return renderHybridModule('Exercícios: Módulo 4 (Perpendicularidade)', EXERCISES_MOD_4_DATA, 4);
+  if (activeModule === 5) return renderHybridModule('Exercícios: Módulo 5 (Posição Real)', EXERCISES_MOD_5_DATA, 5);
+  if (activeModule === 6) return renderHybridModule('Exercícios: Módulo 6 (Batimento Circular)', EXERCISES_MOD_6_DATA, 6);
+  if (activeModule === 7) return renderHybridModule('Exercícios: Módulo 7 (Perfil de Superfície)', EXERCISES_MOD_7_DATA, 7);
+  if (activeModule === 8) return renderHybridModule('Exercícios: Módulo 8 (Stack-Up de Tolerâncias)', EXERCISES_MOD_8_DATA, 8);
+  if (activeModule === 9) return renderHybridModule('Simulado de Avaliação Geral', EXERCISES_MOD_9_DATA, 9);
 
   return null;
 };
